@@ -1,0 +1,9 @@
+.idea
+out
+database
+lib
+database.mv.db
+database.trace.db
+*.iml
+*.svg
+vcs.xml
