@@ -3,7 +3,6 @@ package sepm.ss17.e1526280.dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
-import sepm.ss17.e1526280.dao.exceptions.DatabaseException;
 import sepm.ss17.e1526280.dao.filesystem.ImageDAO;
 
 import java.io.File;
@@ -62,7 +61,7 @@ public class DatabaseManager implements Destroyable {
             wasInitialized = false;
             if (!location.mkdirs()) {
                 LOG.error("Could not create Image Storage for the Database ...");
-                throw new DatabaseException(new RuntimeException("Could not create Image Blobstorage!"));
+                throw new CheckedDatabaseException(new RuntimeException("Could not create Image Blobstorage!"));
             }
         } else {
             LOG.debug("Database seems to exist");
