@@ -1,7 +1,7 @@
 package sepm.ss17.e1526280.dao;
 
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExist;
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExist;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,16 +36,16 @@ public interface PersistenceDAO<T> {
     /**
      * This function persists a Object in the Datasource, if the Object already exists a Exception is thrown
      * @param o object wich should be persisted
-     * @throws ObjectDoesAlreadyExist thrown if the object already exists
+     * @throws ObjectDoesAlreadyExistException thrown if the object already exists
      */
-    void persist(T o) throws ObjectDoesAlreadyExist;
+    void persist(T o) throws ObjectDoesAlreadyExistException;
 
     /**
      * This function persists multiple Object in the Datasource, it makes use of the persist(T) function
      * @param o a List of Objects which should be persisted in the Datasource
-     * @throws ObjectDoesAlreadyExist thrown if a object in the list already exists
+     * @throws ObjectDoesAlreadyExistException thrown if a object in the list already exists
      */
-    default void persist(List<T> o) throws ObjectDoesAlreadyExist {
+    default void persist(List<T> o) throws ObjectDoesAlreadyExistException {
         for(T oo:o) this.persist(oo);
     }
 
@@ -53,9 +53,9 @@ public interface PersistenceDAO<T> {
      * This function does merge the current Object with the one in the Datasource where the Data in the
      * Datasource if overwritten
      * @param o current object
-     * @throws ObjectDoesNotExist thrown if the Object does not exist in the Database
+     * @throws ObjectDoesNotExistException thrown if the Object does not exist in the Database
      */
-    void merge(T o) throws ObjectDoesNotExist;
+    void merge(T o) throws ObjectDoesNotExistException;
 
     /**
      * This function does remove the Object from the Datasource

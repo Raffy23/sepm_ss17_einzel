@@ -5,8 +5,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExist;
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExist;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.h2.H2BoxDatabaseDAO;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
@@ -44,20 +44,35 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void insertNewBox() throws ObjectDoesAlreadyExist {
-        dao.persist(new Box(-1,23f,23f, LitterType.Sawdust,true,false,null));
+    public void insertNewBox() throws ObjectDoesAlreadyExistException {
+        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
     }
 
-    @Test(expected = ObjectDoesAlreadyExist.class)
-    public void insertCollision() throws ObjectDoesAlreadyExist {
-        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null));
-        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null));
+    @Test(expected = ObjectDoesAlreadyExistException.class)
+    public void insertCollision() throws ObjectDoesAlreadyExistException {
+        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
+        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
         Assert.fail();
     }
 
     @Test
-    public void insertAndRead() throws ObjectDoesAlreadyExist {
-        final Box target = new Box(-1,23f,23f, LitterType.Sawdust,true,false,null);
+    public void checkAutoIndexCollision() throws ObjectDoesAlreadyExistException {
+        //Generate some Boxes
+        for(int i=0;i<98;i++)
+            dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
+
+        //Generate Target Box
+        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
+
+        //Now add some more (these two should not fail -> auto_increment in database or so
+        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
+        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
+    }
+
+
+    @Test
+    public void insertAndRead() throws ObjectDoesAlreadyExistException {
+        final Box target = new Box(23f,23f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
         List<Box> box = dao.query(new HashMap<String,Object>(){
             {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,target.getBoxID());}
@@ -68,8 +83,8 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void insertAndMerge() throws ObjectDoesAlreadyExist, ObjectDoesNotExist {
-        final Box target = new Box(-1,23.0f,23.0f, LitterType.Sawdust,true,false,null);
+    public void insertAndMerge() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+        final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
 
         target.setPrice(1000.0f);
@@ -82,22 +97,22 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void persistMultiple() throws ObjectDoesAlreadyExist, ObjectDoesNotExist {
+    public void persistMultiple() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
         final List<Box> boxes = new ArrayList<>();
         final Random rand = ThreadLocalRandom.current();
         for(int i=0; i<=10; i++) {
-            boxes.add(new Box(-1,rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
+            boxes.add(new Box(rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
         }
 
         dao.persist(boxes);
     }
 
-    @Test(expected = ObjectDoesAlreadyExist.class)
-    public void persistMultipleFail() throws ObjectDoesAlreadyExist, ObjectDoesNotExist {
+    @Test(expected = ObjectDoesAlreadyExistException.class)
+    public void persistMultipleFail() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
         final List<Box> boxes = new ArrayList<>();
         final Random rand = ThreadLocalRandom.current();
         for(int i=0; i<=10; i++) {
-            boxes.add(new Box(-1,rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
+            boxes.add(new Box(rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
         }
 
         dao.persist(boxes);
@@ -105,8 +120,8 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void testRemove() throws ObjectDoesAlreadyExist {
-        final Box target = new Box(-1,23.0f,23.0f, LitterType.Sawdust,true,false,null);
+    public void testRemove() throws ObjectDoesAlreadyExistException {
+        final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
         dao.remove(target);
 
@@ -118,8 +133,8 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void tryRemove() throws ObjectDoesAlreadyExist {
-        final Box target = new Box(-1,23.0f,23.0f, LitterType.Sawdust,true,false,null);
+    public void tryRemove() throws ObjectDoesAlreadyExistException {
+        final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
 
         final int oldID = target.getBoxID();
@@ -135,9 +150,9 @@ public class BoxPersistenceTest {
         Assert.assertEquals(box.get(0),target);
     }
 
-    @Test(expected = ObjectDoesNotExist.class)
-    public void mergeFailTest() throws ObjectDoesAlreadyExist, ObjectDoesNotExist {
-        final Box target = new Box(-1,23.0f,23.0f, LitterType.Sawdust,true,false,null);
+    @Test(expected = ObjectDoesNotExistException.class)
+    public void mergeFailTest() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+        final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
 
         target.setBoxID(10000);
@@ -147,6 +162,8 @@ public class BoxPersistenceTest {
         dao.merge(target);
         Assert.fail();
     }
+
+
 
 
     @AfterClass

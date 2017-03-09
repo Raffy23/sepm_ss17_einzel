@@ -17,7 +17,7 @@ import java.io.StringWriter;
  */
 public class ExceptionAlert extends Alert {
 
-    public ExceptionAlert(Exception ex) {
+    public ExceptionAlert(Throwable ex) {
         super(AlertType.ERROR);
 
         //Set contents of the Alert Window
@@ -26,7 +26,7 @@ public class ExceptionAlert extends Alert {
 
         //Create some Objects for the expandable Area
         final Label exceptionLabel = new Label("Die aufgetretene Ausnahme war:");
-        final TextArea textArea = new TextArea(stracktraceToString(ex));
+        final TextArea textArea = new TextArea(stacktraceToString(ex));
 
         textArea.setEditable(false);
         textArea.setWrapText(true);
@@ -44,7 +44,7 @@ public class ExceptionAlert extends Alert {
         this.getDialogPane().setExpandableContent(expContent);
     }
 
-    private static String stracktraceToString(Exception ex) {
+    private static String stacktraceToString(Throwable ex) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(stringWriter);
         ex.printStackTrace(printWriter);

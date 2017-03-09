@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="400.0" minWidth="600.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sepm.ss17.e1526280.gui.controller.BoxTableViewController">
+   <children>
+      <TableView fx:id="boxTable" layoutX="133.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <columns>
+            <TableColumn fx:id="boxPriceCol" prefWidth="75.0" text="Price" />
+            <TableColumn fx:id="boxSizeCol" prefWidth="75.0" text="Size" />
+            <TableColumn fx:id="boxLitterCol" prefWidth="75.0" text="Litter" />
+            <TableColumn fx:id="boxWindowCol" prefWidth="75.0" text="Window" />
+            <TableColumn fx:id="boxIndoorCol" prefWidth="75.0" text="Indoor" />
+            <TableColumn fx:id="boxImageCol" prefWidth="75.0" sortable="false" text="Image" />
+            <TableColumn fx:id="boxEditCol" prefWidth="75.0" sortable="false" text="Edit" />
+            <TableColumn fx:id="boxDeleteCol" prefWidth="84.0" text="Delete" />
+         </columns>
+      </TableView>
+      <ButtonBar layoutX="98.0" layoutY="498.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+         <buttons>
+            <Button mnemonicParsing="false" onAction="#onQueryAll" text="List all Boxes" />
+            <Button fx:id="searchBtn" mnemonicParsing="false" onAction="#onSearch" text="Search" />
+            <Button fx:id="newBoxBtn" mnemonicParsing="false" onAction="#onNewBox" text="New Box" />
+         </buttons>
+         <padding>
+            <Insets right="5.0" />
+         </padding>
+      </ButtonBar>
+   </children>
+</AnchorPane>

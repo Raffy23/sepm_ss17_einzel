@@ -9,7 +9,7 @@ import java.io.Serializable;
  */
 public class Box implements Serializable {
 
-    private int boxID;
+    private int boxID = Integer.MIN_VALUE;
 
     private float price;
     private float size;
@@ -19,8 +19,7 @@ public class Box implements Serializable {
     private String photo;
     private boolean deleted = false;
 
-    public Box(int id, float price, float size, LitterType litter, boolean window, boolean indoor, String photo) {
-        boxID = id;
+    public Box(float price, float size, LitterType litter, boolean window, boolean indoor, String photo) {
         this.price = price;
         this.size = size;
         this.litter = litter;

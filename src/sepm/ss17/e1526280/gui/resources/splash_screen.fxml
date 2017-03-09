@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="161.0" prefWidth="428.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sepm.ss17.e1526280.Main">
+   <children>
+      <Label layoutX="78.0" layoutY="22.0" text="Wendy's Perdepension">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <ProgressBar fx:id="progbar" layoutX="115.0" layoutY="120.0" prefWidth="200.0" progress="0.0" />
+      <Label layoutX="72.0" layoutY="96.0" text="Verbindung zur Datenbannk wird hergesellt" />
+   </children>
+</AnchorPane>

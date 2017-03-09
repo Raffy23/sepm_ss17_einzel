@@ -2,8 +2,8 @@ package sepm.ss17.e1526280.dao.h2;
 
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.DatabaseException;
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExist;
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExist;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
 import sepm.ss17.e1526280.service.DatabaseService;
@@ -22,7 +22,7 @@ import java.util.Map;
  * all the Statements for the Box class.
  *
  * @author Raphael Ludwig
- * @version 04.03.17
+ * @version 09.03.17
  */
 public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersistenceDAO {
 
@@ -31,6 +31,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
     private final PreparedStatement queryID;
     private final PreparedStatement update;
     private final PreparedStatement insert;
+    private final PreparedStatement insertAbsolute;
     private final PreparedStatement delete;
     private final PreparedStatement selectByID;
 
@@ -44,7 +45,8 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
         final Connection connection = getConnection();
         try {
             update = connection.prepareStatement("UPDATE Box SET price=?, size=?, litter=?, window=?, indoor=?, photo=?, deleted=? WHERE BOXID = ?");
-            insert = connection.prepareStatement("INSERT INTO Box VALUES (?,?,?,?,?,?,?,?)");
+            insert = connection.prepareStatement("INSERT INTO Box (price,size,litter,window,indoor,photo,deleted) VALUES (?,?,?,?,?,?,?)",new String[]{"BOXID"});
+            insertAbsolute = connection.prepareStatement("INSERT INTO Box (BOXID,price,size,litter,window,indoor,photo,deleted) VALUES (?,?,?,?,?,?,?,?)");
             delete = connection.prepareStatement("DELETE FROM Box WHERE BOXID = ?");
             queryID = connection.prepareStatement("SELECT MAX(BOXID) FROM BOX");
             selectByID = connection.prepareStatement("SELECT * FROM BOX WHERE BOXID = ?");
@@ -67,6 +69,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
             delete.close();
             queryID.close();
             selectByID.close();
+            insertAbsolute.close();
         } catch (SQLException e) {
             /* I don't really care if cleanup fails ... */
         }
@@ -109,7 +112,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
                 if (t.containsKey(QUERY_PARAM_PRICE)) s.setFloat(position++, (Float) t.get(QUERY_PARAM_PRICE));
                 if (t.containsKey(QUERY_PARAM_SIZE)) s.setFloat(position++, (Float) t.get(QUERY_PARAM_SIZE));
                 if (t.containsKey(QUERY_PARAM_LITTER)) s.setString(position++, ((LitterType) t.get(QUERY_PARAM_LITTER)).name());
-                if (t.containsKey(QUERY_PARAM_WINDOW)) s.setBoolean(position++, (Boolean) t.get(QUERY_PARAM_LITTER));
+                if (t.containsKey(QUERY_PARAM_WINDOW)) s.setBoolean(position++, (Boolean) t.get(QUERY_PARAM_WINDOW));
                 if (t.containsKey(QUERY_PARAM_INDOOR)) s.setBoolean(position++, (Boolean) t.get(QUERY_PARAM_INDOOR));
                 if (t.containsKey(QUERY_PARAM_DELFLAG)) s.setBoolean(position, (Boolean) t.get(QUERY_PARAM_DELFLAG));
             }
@@ -123,7 +126,8 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
                         , LitterType.valueOf(result.getString(4))
                         , result.getBoolean(5)
                         , result.getBoolean(6)
-                        , result.getString(7)));
+                        , result.getString(7)
+                        , result.getBoolean(8)));
             }
 
             s.close();
@@ -137,52 +141,74 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
     /**
      * This function persists a Object in the Datasource, if the Object already exists a Exception is thrown
      * @param object object wich should be persisted
-     * @throws ObjectDoesAlreadyExist thrown if the object already exists
+     * @throws ObjectDoesAlreadyExistException thrown if the object already exists
      */
     @Override
-    public void persist(Box object) throws ObjectDoesAlreadyExist {
-        ResultSet result;
+    public void persist(Box object) throws ObjectDoesAlreadyExistException {
         try {
-            int currentID = object.getBoxID();
 
-            if( currentID < 0 ) {
-                result = queryID.executeQuery();
-                result.next(); // Can not fail due max(...)
+            //Have to Check Object if ID is set
+            if( object.getBoxID() >= 0 ) {
 
-                currentID = result.getInt(1) + 1;
-                object.setBoxID(currentID);
+                //Query Object from Database
+                selectByID.setInt(1, object.getBoxID());
+                final ResultSet result = selectByID.executeQuery();
+
+                //Throw if there is one there
+                if( result.next() ) {
+                    result.close();
+                    throw new ObjectDoesAlreadyExistException();
+                }
+
+                result.close();
+
+                //If no Exception occurred insert it with the ID
+                insertAbsolute.setInt(1,object.getBoxID());
+                insertWithStatement(insertAbsolute,object,2);
+            } else {
+                //Insert Object into Database with auto-index
+                insertWithStatement(insert,object,1);
+
+                //Query the Data from the Database and set the id
+                final ResultSet idResultSet = insert.getGeneratedKeys();
+                idResultSet.next();
+                object.setBoxID(idResultSet.getInt(1));
+
+                idResultSet.close();
             }
 
-            insert.setInt(1,currentID);
-            insert.setFloat(2,object.getPrice());
-            insert.setFloat(3,object.getSize());
-            insert.setString(4,object.getLitter().name());
-            insert.setBoolean(5,object.isWindow());
-            insert.setBoolean(6,object.isIndoor());
-            insert.setString(7,object.getPhoto());
-            insert.setBoolean(8,object.isDeleted());
-
-            insert.executeUpdate();
         } catch (SQLException e) {
-            throw new ObjectDoesAlreadyExist();
+            e.printStackTrace();
+            throw new ObjectDoesAlreadyExistException();
         }
 
+    }
+
+    private static void insertWithStatement(PreparedStatement insert, Box object, int p) throws SQLException {
+        insert.setFloat(p++,object.getPrice());
+        insert.setFloat(p++,object.getSize());
+        insert.setString(p++,object.getLitter().name());
+        insert.setBoolean(p++,object.isWindow());
+        insert.setBoolean(p++,object.isIndoor());
+        insert.setString(p++,object.getPhoto());
+        insert.setBoolean(p,object.isDeleted());
+        insert.executeUpdate();
     }
 
     /**
      * This function does merge the current Object with the one in the Datasource where the Data in the
      * Datasource if overwritten
      * @param object current object
-     * @throws ObjectDoesNotExist thrown if the Object does not exist in the Database
+     * @throws ObjectDoesNotExistException thrown if the Object does not exist in the Database
      */
     @Override
-    public void merge(Box object) throws ObjectDoesNotExist {
+    public void merge(Box object) throws ObjectDoesNotExistException {
         final List<Box> data = this.query(new HashMap<String,Object>(){
             {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,object.getBoxID());}
         });
 
         if( data.size() < 1 )
-            throw new ObjectDoesNotExist();
+            throw new ObjectDoesNotExistException();
 
         try {
             update.setFloat(1,object.getPrice());
@@ -196,7 +222,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
 
             update.executeUpdate();
         } catch (SQLException e) {
-            throw new ObjectDoesNotExist();
+            throw new ObjectDoesNotExistException();
         }
     }
 

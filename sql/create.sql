@@ -11,11 +11,11 @@
 CREATE TABLE IF NOT EXISTS Box (
 
   -- Is needed for the INDEX
-  boxid     INT PRIMARY KEY ,
+  boxid     INT AUTO_INCREMENT PRIMARY KEY,
 
   -- Box Data:
-  price     FLOAT,
-  size      FLOAT,
+  price     FLOAT CONSTRAINT box_price_constraint CHECK (price>=0),
+  size      FLOAT CONSTRAINT box_size_constraint CHECK(size>=0),
   litter    VARCHAR(64),
   window    BOOL,
   indoor    BOOL,
@@ -26,25 +26,25 @@ CREATE TABLE IF NOT EXISTS Box (
   -- For stale Boxes there is a deletion flag
   -- Boxes might be needed for some Invoices
   -- so we can't delete them
-  deleted BOOL
+  deleted BOOL DEFAULT FALSE
 );
 
 -- Creates the main Table where the Reservations are stored
 CREATE TABLE IF NOT EXISTS Reservation (
 
   -- Is needed for the INDEX, no data
-  reservationID INTEGER,
+  reservationID INTEGER AUTO_INCREMENT,
 
   -- Data of the Reservation:
   boxID     INTEGER REFERENCES Box(boxid),
   start     DATE,
-  end       Date,
+  end       DATE,
   customer  VARCHAR(128),
   horse     VARCHAR(128),
-  price     FLOAT,
+  price     FLOAT CONSTRAINT reservation_price_constraint CHECK (price>=0),
 
   -- A flag for Reservations which are already build to Invoices
-  alreadyInvoice BOOL,
+  alreadyInvoice BOOL DEFAULT FALSE ,
 
   UNIQUE (reservationID,boxID,start,end)
 );
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS Reservation (
 -- The Invoice is calculated directly from the Reservation
 -- in the Program
 CREATE TABLE IF NOT EXISTS Invoice (
-  invoiceID   INTEGER,
+  invoiceID   INTEGER AUTO_INCREMENT,
   reservation INTEGER REFERENCES Reservation(reservationID),
 
   PRIMARY KEY (invoiceID,reservation),

@@ -1,6 +1,6 @@
 package sepm.ss17.e1526280.dao;
 
-import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExist;
+import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dto.Box;
 
 import java.util.HashMap;
@@ -31,9 +31,9 @@ public interface BoxPersistenceDAO extends PersistenceDAO<Box> {
      * a easy way
      * @param key the primary key of the box (boxID)
      * @return the Box which was found
-     * @throws ObjectDoesNotExist is thrown if on Box was found
+     * @throws ObjectDoesNotExistException is thrown if on Box was found
      */
-    default Box query(int key) throws ObjectDoesNotExist {
+    default Box query(int key) throws ObjectDoesNotExistException {
         final List<Box> data = query(new HashMap<String,Object>(){
             {
                 put(QUERY_PARAM_BOX_ID,key);
@@ -41,7 +41,7 @@ public interface BoxPersistenceDAO extends PersistenceDAO<Box> {
         });
 
         if( data.size() == 0)
-            throw new ObjectDoesNotExist();
+            throw new ObjectDoesNotExistException();
 
         return data.get(0);
     }

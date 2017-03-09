@@ -1,6 +1,7 @@
 package sepm.ss17.e1526280;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -15,6 +16,7 @@ import sepm.ss17.e1526280.util.GlobalSettings;
 import sepm.ss17.e1526280.util.JavaVersionChecker;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This is the Main Class of the Project which is responsible to initialize every static
@@ -56,19 +58,69 @@ public class Main extends Application {
 
         //Now we can use the Logger ...
         final Logger LOG = LoggerFactory.getLogger(Main.class);
-
         LOG.debug("Loading UI");
 
         //Load the UI from the Scene Builder fxml generated file
         final Pane root = FXMLLoader.load(getClass().getResource(GlobalSettings.FXML_ROOT + FXML_SPLASH));
         final Scene scene = new Scene(root);
 
-        //Can't load realy gui here because the controller needs already the Database
+        //Can't load real gui here because the controller needs already the Database
+        LOG.trace("Setting loading Scene");
         stage.setScene(scene);
         stage.setTitle(APP_TITLE);
         stage.show();
 
         //Check the Java Version
+        checkJavaVersion(LOG, stage);
+
+        //Also make sure we hook up the Database to the onCloseRequest ...
+        stage.setOnCloseRequest(windowEvent -> DatabaseService.destroyService());
+
+        //Now we might initialize the Database Service
+        connectToDatabase(LOG).exceptionally(throwable -> {
+
+            //Initialization failed so abort launch
+            Platform.runLater(() -> {
+                final ExceptionAlert a = new ExceptionAlert(throwable);
+                a.setTitle("Error: " + APP_TITLE);
+                a.setHeaderText("Datenbankfehler:");
+                a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
+                a.show();
+
+                stage.close();
+
+                LOG.trace("Invoking Platform.exit()");
+                Platform.exit();
+            });
+
+            return null;
+        }).thenAccept(aBoolean -> {
+
+            //Database is now up and usable so jump to real GUI
+            Platform.runLater(() -> {
+                //Now we jump into the real GUI:
+                try {
+
+                    final Pane mainRoot = FXMLLoader.load(getClass().getResource(FXML_PATH));
+                    final Scene mainScene = new Scene(mainRoot);
+
+                    LOG.debug("Sanity check done, jumping to real GUI");
+                    stage.setScene(mainScene);
+                    stage.centerOnScreen();
+                    stage.show();
+
+                } catch (IOException e) {
+                    LOG.error("Unable to launch real UI, check FXML_PATH!");
+                    e.printStackTrace();
+                }
+            });
+
+        });
+    }
+
+    private static void checkJavaVersion(Logger LOG, Stage stage) {
+        LOG.debug("Checking Java Version for 1.8._60");
+
         if( !JavaVersionChecker.checkJavaVersion(8,60)) {
             LOG.error("Unable to launch Application, a Java Version newer than 1.8.0_60 is required!");
             LOG.error("Found Java version: " + System.getProperty("java.version"));
@@ -80,44 +132,33 @@ public class Main extends Application {
             a.show();
 
             stage.close();
-            return;
+
+            LOG.trace("Invoking Platform.exit()");
+            Platform.exit();
         }
+    }
 
-        //Also make sure we hook up the Database to the onCloseRequest ...
-        stage.setOnCloseRequest(windowEvent -> DatabaseService.destroyService());
-
-        //Now we might initialize the Database Service
-        try {
-            DatabaseService.initialize();
-        } catch (CheckedDatabaseException e) {
-            LOG.error("Unable to initialize Database refusing Start of Application!");
-            e.printStackTrace();
-
+    private static CompletableFuture<Boolean> connectToDatabase(Logger LOG) {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-                LOG.info("Trying to clean up the Database files ...");
-                DatabaseService.deleteDatabaseFiles();
-            } catch (IOException e1) {
-                LOG.error("Well that wasn't successful ...");
-                e1.printStackTrace();
+                DatabaseService.initialize();
+                return true;
+            } catch (CheckedDatabaseException e) {
+                LOG.error("Unable to initialize Database refusing Start of Application!");
+                e.printStackTrace();
+
+                try {
+                    LOG.info("Trying to clean up the Database files ...");
+                    DatabaseService.deleteDatabaseFiles();
+                } catch (IOException e1) {
+                    LOG.error("Well that wasn't successful ...");
+                    e1.printStackTrace();
+
+                    throw new RuntimeException(e1);
+                }
+
+                throw new RuntimeException(e);
             }
-
-            final ExceptionAlert a = new ExceptionAlert(e);
-            a.setTitle("Error: " + APP_TITLE);
-            a.setHeaderText("Datenbankfehler:");
-            a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
-            a.show();
-
-            stage.close();
-            return;
-        }
-
-        //Now we jump into the real GUI:
-        final Pane mainRoot = FXMLLoader.load(getClass().getResource(FXML_PATH));
-        final Scene mainScene = new Scene(mainRoot);
-
-        LOG.debug("Sanity check done, jumping to real GUI");
-        stage.setScene(mainScene);
-        stage.centerOnScreen();
-        stage.show();
+        });
     }
 }
