@@ -28,9 +28,6 @@ import java.util.concurrent.CompletableFuture;
  */
 public class Main extends Application {
 
-    /** The Title for the JavaFX Window **/
-    private static final String APP_TITLE = "Wendy's Pferdepension";
-
     /** The File for the main Window **/
     private static final String FXML_MAIN = "main_window.fxml";
     private static final String FXML_SPLASH = "splash_screen.fxml";
@@ -67,7 +64,7 @@ public class Main extends Application {
         //Can't load real gui here because the controller needs already the Database
         LOG.trace("Setting loading Scene");
         stage.setScene(scene);
-        stage.setTitle(APP_TITLE);
+        stage.setTitle(GlobalSettings.APP_TITLE);
         stage.show();
 
         //Check the Java Version
@@ -82,7 +79,7 @@ public class Main extends Application {
             //Initialization failed so abort launch
             Platform.runLater(() -> {
                 final ExceptionAlert a = new ExceptionAlert(throwable);
-                a.setTitle("Error: " + APP_TITLE);
+                a.setTitle("Error: " + GlobalSettings.APP_TITLE);
                 a.setHeaderText("Datenbankfehler:");
                 a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
                 a.show();
@@ -126,7 +123,7 @@ public class Main extends Application {
             LOG.error("Found Java version: " + System.getProperty("java.version"));
 
             final Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Error: " + APP_TITLE);
+            a.setTitle("Error: " + GlobalSettings.APP_TITLE);
             a.setHeaderText("JVM Version zu alt!");
             a.setContentText("Diese Anwendung benötigt eine Java version\nneuer als 1.8.0_60, es wurde aber \n" + System.getProperty("java.version") + " erkannt!");
             a.show();
