@@ -41,17 +41,24 @@ public class BoxDeleteCell extends TableCell<Box, Void> {
             final Box curObj = getTableView().getItems().get(getIndex());
 
             deleteBtn.setOnAction(event -> {
-                final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
-                question.setTitle("Confirmation Dialog");
-                question.setHeaderText("Deletion of a Box");
-                question.setContentText("You are going to delete a Box permanently.\nAre you sure you want to continue?");
-
-                Optional<ButtonType> result = question.showAndWait();
-                if (result.get() == ButtonType.OK) {
+                if (askForDeletion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
                     dataService.delete(curObj);
                     boxObservableList.remove(curObj);
                 }
             });
         }
+    }
+
+    /**
+     * This function does display a Dialog to confirm the Deletion
+     * @return the result of the Dialog
+     */
+    private static Optional<ButtonType> askForDeletion() {
+        final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
+        question.setTitle("Confirmation Dialog");
+        question.setHeaderText("Deletion of a Box");
+        question.setContentText("You are going to delete a Box permanently.\nAre you sure you want to continue?");
+
+        return question.showAndWait();
     }
 }

@@ -7,16 +7,21 @@ import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 /**
- * Created by
+ * A simple Utility class which can spawn different dialogs with pre-defined Text messages
  *
  * @author Raphael Ludwig
- * @version 09.03.17
+ * @version 11.03.17
  */
 public class DialogUtil {
 
     /** Logger for logging ... duh **/
     private static final Logger LOG = LoggerFactory.getLogger(DialogUtil.class);
 
+    /**
+     * Displays an ExceptionAlert Dialog
+     * @param err the Exception which should be displayed
+     * @return null
+     */
     public static Void onError(Throwable err) {
         LOG.error("There was an Error: " + err.getMessage());
 
@@ -33,6 +38,12 @@ public class DialogUtil {
         return null;
     }
 
+    /**
+     * Displays an Exception Dialog and waits for the Dialog to close, after
+     * that the Application shutdown is encored
+     * @param err the Exception which should be displayed
+     * @return null
+     */
     public static Void onFatal(Throwable err) {
         LOG.error("There was a Fatal Error: " + err.getMessage());
 

@@ -31,11 +31,20 @@ public class DataService {
     /** Logger for logging ... duh **/
     private static final Logger LOG = LoggerFactory.getLogger(DataService.class);
 
+    /** Static service variable -> singleton pattern **/
+    private static final DataService service = new DataService();
+
     /** PersistenceDAO for all the Boxes we have **/
     private final BoxPersistenceDAO boxDAO = new H2BoxDatabaseDAO();
 
     /** DAO for the Images we have **/
     private final ImageDAO imageDAO = DatabaseService.getManager().getImageStorage();
+
+
+    private DataService() {}
+    public static DataService getService() {
+        return service;
+    }
 
     /**
      * This function does handle the Image stuff for the Box
@@ -116,6 +125,7 @@ public class DataService {
      * @return a CompletableFuture which returns the result of the operation asynchronously
      */
     public CompletableFuture<List<Box>> searchForBoxes(Float price, Float size, LitterType litterType, Boolean window, Boolean indoor) {
+        //Fill search Map with the Values
         final Map<String,Object> searchData = new HashMap<String,Object>() {
             {
                 put(BoxPersistenceDAO.QUERY_PARAM_LITTER, litterType);

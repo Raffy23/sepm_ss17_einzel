@@ -7,10 +7,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.gui.controller.BoxCreationController;
 import sepm.ss17.e1526280.gui.dialogs.BoxDetailDialog;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
+import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.ExceptionAlert;
 import sepm.ss17.e1526280.service.DataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
@@ -18,16 +21,21 @@ import sepm.ss17.e1526280.util.GlobalSettings;
 import java.io.IOException;
 
 /**
- * Created by
+ * Table Cell Renderer for the Edit Cell
+ * A Button is rendered in the cell and the
+ * dialog and onClick events are also handheld
  *
  * @author Raphael Ludwig
- * @version 09.03.17
+ * @version 11.03.17
  */
 public class BoxViewEditCell extends TableCell<Box, Void> {
 
+    /** Logger for logging ... duh **/
+    private static final Logger LOG = LoggerFactory.getLogger(BoxViewEditCell.class);
+
     private final DataService dataService;
     private final TableView<Box> boxTable;
-    private final Button editBtn = new Button("Edit");
+    private final Button editBtn = new Button("Bearbeiten");
 
     public BoxViewEditCell(DataService dataService, TableView<Box> boxTable) {
         this.dataService = dataService;
@@ -44,19 +52,27 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
         } else {
             final Box curObj = getTableView().getItems().get(getIndex());
 
+            //Set the Action Event after the Table has been rendered
             editBtn.setOnAction((ActionEvent event) -> {
-
+                LOG.trace("Set Edit Button Action");
                 final Stage parentStage = (Stage) editBtn.getScene().getWindow();
+
+                //Open a new Dialog for the Box editing
                 try {
                     final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, "Edit Box data");
                     final BoxCreationController controller = dialog.getController();
 
+                    //Init the Dialog with some Data
                     controller.init(curObj);
+                    //Set the Listener in the Dialog
                     controller.setOkBtnEventHandler(event1 -> {
+                        LOG.debug("Update Box " + curObj + " with Dialog Data");
 
+                        //Check for Input validation
                         if (!controller.validateInput())
                             return;
 
+                        //Update the Data in the Box and Backend
                         curObj.updateDataFrom(controller.generateBox());
                         dataService.update(curObj)
                                 .thenAccept(box -> Platform.runLater(boxTable::refresh))
@@ -69,7 +85,7 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
                     dialog.show();
                 } catch (IOException e) {
                     System.err.println("Fatal: Unable to create BoxDetailDialog!");
-                    e.printStackTrace();
+                    DialogUtil.onFatal(e);
                 }
             });
 
@@ -78,12 +94,16 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
         }
     }
 
-
+    /**
+     * Displays the Error Dialog which is needed if there was some error while editing the Box
+     * @param err exception which was thrown
+     * @return null
+     */
     private static Void onError(Throwable err) {
         Alert alert = new ExceptionAlert(err);
         alert.setTitle("Error: " + GlobalSettings.APP_TITLE);
-        alert.setHeaderText("Could not edit the new Box");
-        alert.setContentText("While editing a Box an error occurred and the Box could not been saved the the Disk, please contact the support personal with the error message below the resolve the problem.");
+        alert.setHeaderText("Box konnte nicht bearbeitet werden!");
+        alert.setContentText("Es ist ein Problem beim bearbeiten der Box aufgetreten, drücken Sie auf Details anzeigen um mehr von dem Fehler zu erfahren.");
         alert.show();
 
         return null;
