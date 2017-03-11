@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS Box (
 CREATE TABLE IF NOT EXISTS Reservation (
 
   -- Is needed for the INDEX, no data
-  reservationID INTEGER AUTO_INCREMENT,
+  wtf_fuck_h2_auto_indices INTEGER AUTO_INCREMENT PRIMARY KEY,
+  reservationID INTEGER,
 
   -- Data of the Reservation:
   boxID     INTEGER REFERENCES Box(boxid),
@@ -46,18 +47,18 @@ CREATE TABLE IF NOT EXISTS Reservation (
   -- A flag for Reservations which are already build to Invoices
   alreadyInvoice BOOL DEFAULT FALSE ,
 
-  UNIQUE (reservationID,boxID,start,end)
+  UNIQUE (reservationID,boxID),
+  UNIQUE (boxID,start,end)
 );
 
 -- Creates the main Table where the Invoices are stored
 -- The Invoice is calculated directly from the Reservation
 -- in the Program
 CREATE TABLE IF NOT EXISTS Invoice (
-  invoiceID   INTEGER AUTO_INCREMENT,
+  invoiceID   INTEGER AUTO_INCREMENT PRIMARY KEY,
   reservation INTEGER REFERENCES Reservation(reservationID),
 
-  PRIMARY KEY (invoiceID,reservation),
-  UNIQUE (invoiceID)
+  UNIQUE (invoiceID,reservation),
 );
 
 -- EOF

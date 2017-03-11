@@ -9,21 +9,22 @@
    <children>
       <TableView fx:id="boxTable" layoutX="133.0" layoutY="14.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <columns>
-            <TableColumn fx:id="boxPriceCol" prefWidth="75.0" text="Price" />
-            <TableColumn fx:id="boxSizeCol" prefWidth="75.0" text="Size" />
-            <TableColumn fx:id="boxLitterCol" prefWidth="75.0" text="Litter" />
-            <TableColumn fx:id="boxWindowCol" prefWidth="75.0" text="Window" />
+            <TableColumn prefWidth="43.0" text="#" />
+            <TableColumn fx:id="boxPriceCol" prefWidth="91.0" text="Preis" />
+            <TableColumn fx:id="boxSizeCol" text="Größe" />
+            <TableColumn fx:id="boxLitterCol" prefWidth="86.0" text="Streu" />
+            <TableColumn fx:id="boxWindowCol" prefWidth="75.0" text="Fenster" />
             <TableColumn fx:id="boxIndoorCol" prefWidth="75.0" text="Indoor" />
-            <TableColumn fx:id="boxImageCol" prefWidth="75.0" sortable="false" text="Image" />
-            <TableColumn fx:id="boxEditCol" prefWidth="75.0" sortable="false" text="Edit" />
-            <TableColumn fx:id="boxDeleteCol" prefWidth="84.0" text="Delete" />
+            <TableColumn fx:id="boxImageCol" prefWidth="75.0" sortable="false" text="Bild" />
+            <TableColumn fx:id="boxEditCol" prefWidth="115.0" sortable="false" text="Bearbeiten" />
+            <TableColumn fx:id="boxDeleteCol" prefWidth="106.0" text="Löschen" />
          </columns>
       </TableView>
       <ButtonBar layoutX="98.0" layoutY="498.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <buttons>
-            <Button mnemonicParsing="false" onAction="#onQueryAll" text="List all Boxes" />
-            <Button fx:id="searchBtn" mnemonicParsing="false" onAction="#onSearch" text="Search" />
-            <Button fx:id="newBoxBtn" mnemonicParsing="false" onAction="#onNewBox" text="New Box" />
+            <Button mnemonicParsing="false" onAction="#onQueryAll" text="Alle Boxen anzeigen" />
+            <Button fx:id="searchBtn" mnemonicParsing="false" onAction="#onSearch" text="Suchen" />
+            <Button fx:id="newBoxBtn" mnemonicParsing="false" onAction="#onNewBox" text="Neue Box" />
          </buttons>
          <padding>
             <Insets right="5.0" />

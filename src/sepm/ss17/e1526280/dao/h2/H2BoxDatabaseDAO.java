@@ -1,5 +1,7 @@
 package sepm.ss17.e1526280.dao.h2;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.DatabaseException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
@@ -26,6 +28,9 @@ import java.util.Map;
  */
 public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersistenceDAO {
 
+    /** Logger for logging ... duh **/
+    private static final Logger LOG = LoggerFactory.getLogger(H2BoxDatabaseDAO.class);
+
     //TODO: Comment Statements
     //Some private statements
     private final PreparedStatement queryID;
@@ -40,6 +45,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      */
     public H2BoxDatabaseDAO() {
         super(DatabaseService.getManager(),"Box");
+        LOG.trace("Constructor");
 
         //Prepare all the Statements
         final Connection connection = getConnection();
@@ -63,6 +69,8 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      */
     @Override
     public void destroy() {
+        LOG.trace("destroy");
+
         try {
             update.close();
             insert.close();
@@ -104,6 +112,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
 
         try {
             final PreparedStatement s = getConnection().prepareStatement(rawStatement.toString());
+            LOG.debug("Query:\t"+s);
             int position = 1;
 
             //Fill the Data into the Statement
@@ -145,6 +154,8 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      */
     @Override
     public void persist(Box object) throws ObjectDoesAlreadyExistException {
+        LOG.trace("Persist:\t"+object);
+
         try {
 
             //Have to Check Object if ID is set

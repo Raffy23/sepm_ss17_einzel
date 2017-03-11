@@ -3,16 +3,20 @@ package sepm.ss17.e1526280.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
+import sepm.ss17.e1526280.dao.ReservationPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.filesystem.ImageDAO;
 import sepm.ss17.e1526280.dao.h2.H2BoxDatabaseDAO;
+import sepm.ss17.e1526280.dao.h2.H2ReservationDatabaseDAO;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
 import sepm.ss17.e1526280.dto.Reservation;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +40,7 @@ public class DataService {
 
     /** PersistenceDAO for all the Boxes we have **/
     private final BoxPersistenceDAO boxDAO = new H2BoxDatabaseDAO();
+    private final ReservationPersistenceDAO resDAO = new H2ReservationDatabaseDAO();
 
     /** DAO for the Images we have **/
     private final ImageDAO imageDAO = DatabaseService.getManager().getImageStorage();
@@ -154,6 +159,33 @@ public class DataService {
     public void delete(Box box) {
         LOG.trace("delete: " + box);
         boxDAO.remove(box);
+    }
+
+    public CompletableFuture<List<Reservation>> persist(List<Reservation> rs) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                resDAO.persist(rs);
+                return rs;
+            } catch (ObjectDoesAlreadyExistException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    public CompletableFuture<Collection<List<Reservation>>> queryReservations() {
+        return CompletableFuture.supplyAsync(() -> {
+            final Map<Integer,List<Reservation>> dataCollector = new HashMap<>();
+            final List<Reservation> rawData = resDAO.queryAll();
+
+            rawData.forEach(reservation -> {
+                final List<Reservation> dL = dataCollector.getOrDefault(reservation.getId(),new ArrayList<>());
+                dL.add(reservation);
+
+                dataCollector.put(reservation.getId(),dL);
+            });
+
+            return dataCollector.values();
+        });
     }
 
     public void delete(Reservation res) {

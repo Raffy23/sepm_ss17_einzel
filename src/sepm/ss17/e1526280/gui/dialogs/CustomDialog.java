@@ -1,13 +1,10 @@
 package sepm.ss17.e1526280.gui.dialogs;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.IOException;
 
@@ -39,15 +36,8 @@ public abstract class CustomDialog<T> {
 
             controller = loader.getController();
         } catch (IOException e) {
-            Platform.runLater(() -> {
-                final Alert a = new Alert(Alert.AlertType.ERROR);
-                a.setTitle("Error: " + GlobalSettings.APP_TITLE);
-                a.setHeaderText("Es ist ein schwerer Fehler aufgetreten!");
-                a.setContentText("Es konnte die Datei ("+fxml+") nicht geladen werden!\nDas Program wird nun beendet.");
-                a.showAndWait();
-
-                Platform.exit();
-            });
+            e.printStackTrace();
+            DialogUtil.onFatal(e);
 
             scene = null;
             controller = null;

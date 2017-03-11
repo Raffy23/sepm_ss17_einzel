@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
+import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.ExceptionAlert;
 import sepm.ss17.e1526280.service.DatabaseService;
 import sepm.ss17.e1526280.util.GlobalSettings;
@@ -41,9 +42,6 @@ public class Main extends Application {
         if( System.getProperty("logback.configurationFile") == null )
             if( GlobalSettings.getConfig().getProperty("logback.config") != null )
                 System.setProperty("logback.configurationFile", GlobalSettings.getConfig().getProperty("logback.config"));
-
-
-
 
         //Start JavaFX and display the GUI
         launch(args);
@@ -82,10 +80,9 @@ public class Main extends Application {
                 a.setTitle("Error: " + GlobalSettings.APP_TITLE);
                 a.setHeaderText("Datenbankfehler:");
                 a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
-                a.show();
+                a.showAndWait();
 
                 stage.close();
-
                 LOG.trace("Invoking Platform.exit()");
                 Platform.exit();
             });
@@ -94,6 +91,7 @@ public class Main extends Application {
         }).thenAccept(aBoolean -> {
 
             //Database is now up and usable so jump to real GUI
+            if( aBoolean )
             Platform.runLater(() -> {
                 //Now we jump into the real GUI:
                 try {
@@ -108,7 +106,7 @@ public class Main extends Application {
 
                 } catch (IOException e) {
                     LOG.error("Unable to launch real UI, check FXML_PATH!");
-                    e.printStackTrace();
+                    DialogUtil.onFatal(e);
                 }
             });
 
@@ -144,6 +142,7 @@ public class Main extends Application {
                 LOG.error("Unable to initialize Database refusing Start of Application!");
                 e.printStackTrace();
 
+                /*
                 try {
                     LOG.info("Trying to clean up the Database files ...");
                     DatabaseService.deleteDatabaseFiles();
@@ -153,8 +152,10 @@ public class Main extends Application {
 
                     throw new RuntimeException(e1);
                 }
+                */
 
-                throw new RuntimeException(e);
+                DialogUtil.onFatal(e);
+                return false;
             }
         });
     }
