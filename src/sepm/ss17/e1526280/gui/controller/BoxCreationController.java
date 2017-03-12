@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.util.DataServiceManager;
 
 import java.io.File;
 import java.text.NumberFormat;
@@ -67,14 +67,6 @@ public class BoxCreationController {
         //Set Data
         litterComboBox.getItems().addAll(LitterType.Sawdust,LitterType.Straw);
 
-        //TODO: really validate on every Focus change?
-        priceTextField.focusedProperty().addListener(onFocusLeaveValidator);
-        sizeTextField.focusedProperty().addListener(onFocusLeaveValidator);
-        litterComboBox.focusedProperty().addListener(onFocusLeaveValidator);
-        indoorChecker.focusedProperty().addListener(onFocusLeaveValidator);
-        windowChecker.focusedProperty().addListener(onFocusLeaveValidator);
-        imagePathTextField.focusedProperty().addListener(onFocusLeaveValidator);
-
         LOG.trace("Finished initialization");
     }
 
@@ -95,7 +87,7 @@ public class BoxCreationController {
             imagePathTextField.setText(photo.getAbsolutePath());
         }
 
-        validateInput();
+        //validateInput();
     }
 
     @FXML
@@ -109,10 +101,9 @@ public class BoxCreationController {
     }
 
     private boolean validateTextField(TextField tf) {
-        LOG.trace("validate Text input for " + tf);
+        LOG.trace("Validate Text input for " + tf);
 
-        if( tf.getText().length() == 0 || !canParseNumber(tf) ) {
-
+        if( tf.getText().length() == 0 || !canParseNumber(tf) || parseField(tf) <= 0 ) {
             if( !tf.getStyleClass().contains("error") )
                 tf.getStyleClass().add("error");
 
@@ -128,7 +119,7 @@ public class BoxCreationController {
         boolean success;
 
         success = validateTextField(priceTextField);
-        success = success && validateTextField(sizeTextField);
+        success = validateTextField(sizeTextField) && success;
 
         if( litterComboBox.getValue() == null ) {
 
@@ -154,24 +145,20 @@ public class BoxCreationController {
         return true;
     }
 
-    public float getPrice() {
+    private double parseField(TextField textField) {
         try {
-            return fmt.parse(priceTextField.getText()).floatValue();
+            return fmt.parse(textField.getText()).doubleValue();
         } catch (ParseException e) {
-            e.printStackTrace();
+            return Double.NaN;
         }
+    }
 
-        return 0;
+    public float getPrice() {
+       return (float) parseField(priceTextField);
     }
 
     public float getSize() {
-        try {
-            return fmt.parse(sizeTextField.getText()).floatValue();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
+        return (float) parseField(sizeTextField);
     }
 
     public boolean hasWindow() {
@@ -208,7 +195,7 @@ public class BoxCreationController {
         indoorChecker.setSelected(box.isIndoor());
 
         if( box.getPhoto() != null ) {
-            photo = DataService.getService().resolveImage(box);
+            photo = DataServiceManager.getService().getBoxDataService().resolveImage(box);
             imagePathTextField.setText(photo.getAbsolutePath());
         } else {
             photo = null;

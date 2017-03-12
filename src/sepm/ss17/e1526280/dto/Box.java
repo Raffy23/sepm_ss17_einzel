@@ -3,7 +3,8 @@ package sepm.ss17.e1526280.dto;
 import java.io.Serializable;
 
 /**
- * TODO: Comments
+ * Boxes DTO Class which has only auto-generated functions
+ *
  * @author Raphael Ludwig
  * @version 08.03.17
  */
@@ -128,6 +129,7 @@ public class Box implements Serializable {
         if (window != box.window) return false;
         if (indoor != box.indoor) return false;
         if (litter != box.litter) return false;
+
         return photo != null ? photo.equals(box.photo) : box.photo == null;
     }
 

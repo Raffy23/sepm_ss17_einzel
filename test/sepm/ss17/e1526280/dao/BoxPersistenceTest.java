@@ -10,7 +10,7 @@ import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.h2.H2BoxDatabaseDAO;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
-import sepm.ss17.e1526280.service.DatabaseService;
+import sepm.ss17.e1526280.util.DatabaseService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.IOException;
@@ -54,21 +54,6 @@ public class BoxPersistenceTest {
         dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
         Assert.fail();
     }
-
-    @Test
-    public void checkAutoIndexCollision() throws ObjectDoesAlreadyExistException {
-        //Generate some Boxes
-        for(int i=0;i<98;i++)
-            dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
-
-        //Generate Target Box
-        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
-
-        //Now add some more (these two should not fail -> auto_increment in database or so
-        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
-        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
-    }
-
 
     @Test
     public void insertAndRead() throws ObjectDoesAlreadyExistException {
@@ -120,7 +105,7 @@ public class BoxPersistenceTest {
     }
 
     @Test
-    public void testRemove() throws ObjectDoesAlreadyExistException {
+    public void testRemove() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
         final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
         dao.remove(target);
@@ -132,22 +117,14 @@ public class BoxPersistenceTest {
         Assert.assertEquals(0,box.size());
     }
 
-    @Test
-    public void tryRemove() throws ObjectDoesAlreadyExistException {
+    @Test(expected = ObjectDoesNotExistException.class)
+    public void tryRemove() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
         final Box target = new Box(23.0f,23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
 
         final int oldID = target.getBoxID();
         target.setBoxID(10000);
         dao.remove(target);
-
-        target.setBoxID(oldID);
-        List<Box> box = dao.query(new HashMap<String,Object>(){
-            {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,target.getBoxID());}
-        });
-
-        Assert.assertEquals(1,box.size());
-        Assert.assertEquals(box.get(0),target);
     }
 
     @Test(expected = ObjectDoesNotExistException.class)

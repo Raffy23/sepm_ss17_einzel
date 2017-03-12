@@ -15,7 +15,7 @@ import sepm.ss17.e1526280.gui.dialogs.BoxDetailDialog;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.ExceptionAlert;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.IOException;
@@ -33,11 +33,11 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
     /** Logger for logging ... duh **/
     private static final Logger LOG = LoggerFactory.getLogger(BoxViewEditCell.class);
 
-    private final DataService dataService;
+    private final BoxDataService dataService;
     private final TableView<Box> boxTable;
     private final Button editBtn = new Button("Bearbeiten");
 
-    public BoxViewEditCell(DataService dataService, TableView<Box> boxTable) {
+    public BoxViewEditCell(BoxDataService dataService, TableView<Box> boxTable) {
         this.dataService = dataService;
         this.boxTable = boxTable;
     }
@@ -69,8 +69,10 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
                         LOG.debug("Update Box " + curObj + " with Dialog Data");
 
                         //Check for Input validation
-                        if (!controller.validateInput())
+                        if (!controller.validateInput()) {
+                            LOG.info("Input validation failed");
                             return;
+                        }
 
                         //Update the Data in the Box and Backend
                         curObj.updateDataFrom(controller.generateBox());

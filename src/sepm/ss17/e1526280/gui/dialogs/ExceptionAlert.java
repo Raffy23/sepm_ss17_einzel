@@ -44,6 +44,11 @@ public class ExceptionAlert extends Alert {
         this.getDialogPane().setExpandableContent(expContent);
     }
 
+    /**
+     * Prints the Stacktrace to a String
+     * @param ex exception which should be printed to a String
+     * @return the string which contains the stacktrace
+     */
     private static String stacktraceToString(Throwable ex) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(stringWriter);

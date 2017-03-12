@@ -30,8 +30,7 @@ public class DialogUtil {
 
             alert.setTitle("Error: " + GlobalSettings.APP_TITLE);
             alert.setHeaderText("Es ist ein Fehler aufgetreten:");
-            //TODO: Text
-            //alert.setContentText("");
+            alert.setContentText("Bei der letzten Aktion ist ein Fehler aufgetreten.\nIn den Details finden Sie weitere Informationen zu dem Fehler.");
             alert.show();
         });
 

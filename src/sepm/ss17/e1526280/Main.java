@@ -9,12 +9,16 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.ExceptionAlert;
-import sepm.ss17.e1526280.service.DatabaseService;
+import sepm.ss17.e1526280.service.provider.ServiceProvider;
+import sepm.ss17.e1526280.service.provider.SimpleServiceProvider;
+import sepm.ss17.e1526280.util.DataServiceManager;
+import sepm.ss17.e1526280.util.DatabaseService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 import sepm.ss17.e1526280.util.JavaVersionChecker;
+import sepm.ss17.e1526280.util.datasource.DataSource;
+import sepm.ss17.e1526280.util.datasource.DatabaseSource;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -72,24 +76,8 @@ public class Main extends Application {
         stage.setOnCloseRequest(windowEvent -> DatabaseService.destroyService());
 
         //Now we might initialize the Database Service
-        connectToDatabase(LOG).exceptionally(throwable -> {
-
-            //Initialization failed so abort launch
-            Platform.runLater(() -> {
-                final ExceptionAlert a = new ExceptionAlert(throwable);
-                a.setTitle("Error: " + GlobalSettings.APP_TITLE);
-                a.setHeaderText("Datenbankfehler:");
-                a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
-                a.showAndWait();
-
-                stage.close();
-                LOG.trace("Invoking Platform.exit()");
-                Platform.exit();
-            });
-
-            return null;
-        }).thenAccept(aBoolean -> {
-
+        startDataService(LOG).exceptionally(throwable -> Main.onBackendError(throwable,LOG,stage))
+                             .thenAccept(aBoolean -> {
             //Database is now up and usable so jump to real GUI
             if( aBoolean )
             Platform.runLater(() -> {
@@ -133,30 +121,41 @@ public class Main extends Application {
         }
     }
 
-    private static CompletableFuture<Boolean> connectToDatabase(Logger LOG) {
+    private static CompletableFuture<Boolean> startDataService(Logger LOG) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                DatabaseService.initialize();
+                //To change backend change the data source
+                final DataSource backend = new DatabaseSource();
+                //To change used services change this line:
+                final ServiceProvider serviceProvider = new SimpleServiceProvider();
+
+                //Construct data backend service
+                DataServiceManager.initialize(backend, serviceProvider);
+
                 return true;
-            } catch (CheckedDatabaseException e) {
+
+            } catch (Exception e) {
                 LOG.error("Unable to initialize Database refusing Start of Application!");
-                e.printStackTrace();
-
-                /*
-                try {
-                    LOG.info("Trying to clean up the Database files ...");
-                    DatabaseService.deleteDatabaseFiles();
-                } catch (IOException e1) {
-                    LOG.error("Well that wasn't successful ...");
-                    e1.printStackTrace();
-
-                    throw new RuntimeException(e1);
-                }
-                */
-
                 DialogUtil.onFatal(e);
+
                 return false;
             }
         });
+    }
+
+    private static boolean onBackendError(Throwable err, Logger LOG, Stage stage) {
+        Platform.runLater(() -> {
+            final ExceptionAlert a = new ExceptionAlert(err);
+            a.setTitle("Error: " + GlobalSettings.APP_TITLE);
+            a.setHeaderText("Datenbankfehler:");
+            a.setContentText("Es konnte keine Verbdinung zur Datenbank hergestellt werden!");
+            a.showAndWait();
+
+            stage.close();
+            LOG.trace("Invoking Platform.exit()");
+            Platform.exit();
+        });
+
+        return false;
     }
 }

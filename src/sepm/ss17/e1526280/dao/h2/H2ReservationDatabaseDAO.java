@@ -9,7 +9,8 @@ import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
-import sepm.ss17.e1526280.service.DatabaseService;
+import sepm.ss17.e1526280.service.DataException;
+import sepm.ss17.e1526280.util.DatabaseService;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.sql.Connection;
@@ -47,7 +48,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         final Connection connection = getConnection();
         try {
             insert = connection.prepareStatement("INSERT INTO RESERVATION (RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE) VALUES (?,?,?,?,?,?,?,?)");
-            delete = connection.prepareStatement("DELETE FROM RESERVATION WHERE RESERVATIONID=?");
+            delete = connection.prepareStatement("DELETE FROM RESERVATION WHERE RESERVATIONID=? AND BOXID=?");
             queryID = connection.prepareStatement("SELECT MAX(RESERVATIONID) FROM RESERVATION");
             selectByID = connection.prepareStatement("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM RESERVATION WHERE RESERVATIONID = ?");
         } catch (SQLException e) {
@@ -59,7 +60,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     @Override
     public void destroy() {
-        LOG.trace("destroy");
+        LOG.trace("Destroy");
         try {
             insert.close();
             delete.close();
@@ -72,7 +73,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     @Override
     public List<Reservation> query(Map<String, Object> param) {
-        System.err.println("params are ignored!");
+        LOG.error("Currently all parameters are ignored in the Query!");
         final List<Reservation> data = new ArrayList<>();
 
         try {
@@ -129,16 +130,26 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     @Override
     public void merge(Reservation o) throws ObjectDoesNotExistException {
+        LOG.error("Merge operation is not implemented!");
         throw new NotImplementedException();
     }
 
     @Override
     public void remove(Reservation o) {
-        throw new NotImplementedException();
+        LOG.debug("Remove\t" + o);
+
+        try {
+            delete.setInt(1,o.getId());
+            delete.setInt(2,o.getBoxId());
+            delete.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataException(e);
+        }
     }
 
     @Override
     public void persist(List<Reservation> o) throws ObjectDoesAlreadyExistException {
+        LOG.debug("Persist\t" + o);
         final int queryID;
 
         try {

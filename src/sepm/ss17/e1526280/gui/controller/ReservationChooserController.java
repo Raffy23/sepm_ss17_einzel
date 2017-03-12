@@ -18,7 +18,8 @@ import javafx.stage.Stage;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.BoxDataService;
+import sepm.ss17.e1526280.util.DataServiceManager;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -84,7 +85,7 @@ public class ReservationChooserController {
     @FXML private DatePicker startDate;
     @FXML private DatePicker endDate;
 
-    private final DataService dataService = DataService.getService();
+    private final BoxDataService boxService = DataServiceManager.getService().getBoxDataService();
 
     @FXML
     public void initialize() {
@@ -129,7 +130,7 @@ public class ReservationChooserController {
 
         });
 
-        dataService.getAllBoxes().thenAccept(boxes -> {
+        boxService.queryAll().thenAccept(boxes -> {
             final List<BoxUIWrapper> dataList = boxes.stream().map(BoxUIWrapper::new).collect(Collectors.toList());
             final ObservableList<BoxUIWrapper> tableContent = FXCollections.observableArrayList(dataList);
             Platform.runLater(() -> boxTable.setItems(tableContent));
@@ -155,10 +156,7 @@ public class ReservationChooserController {
 
         System.err.println("Boxes: " + cnt);
 
-        if(cnt == 0)
-            return false;
-
-        return true;
+        return cnt != 0;
     }
 
     public void setOkBtnEventHandler(EventHandler<ActionEvent> okBtnEventHandler) {

@@ -16,6 +16,6 @@ public class SearchDialog extends CustomDialog<BoxSearchController> {
     private static final String FXML_PATH = GlobalSettings.FXML_ROOT+"box_detail_searchview.fxml";
 
     public SearchDialog(Stage owner) throws IOException {
-        super(owner,"Search for Boxes",FXML_PATH);
+        super(owner,GlobalSettings.APP_TITLE + ": Suche nach Boxen",FXML_PATH);
     }
 }

@@ -8,7 +8,7 @@ import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
-import sepm.ss17.e1526280.service.DatabaseService;
+import sepm.ss17.e1526280.util.DatabaseService;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -112,7 +112,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
 
         try {
             final PreparedStatement s = getConnection().prepareStatement(rawStatement.toString());
-            LOG.debug("Query:\t"+s);
+            LOG.debug("Query:\t"+s + " with data " + t);
             int position = 1;
 
             //Fill the Data into the Statement
@@ -157,7 +157,6 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
         LOG.trace("Persist:\t"+object);
 
         try {
-
             //Have to Check Object if ID is set
             if( object.getBoxID() >= 0 ) {
 
@@ -214,6 +213,8 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      */
     @Override
     public void merge(Box object) throws ObjectDoesNotExistException {
+        LOG.debug("Merge\t" + object);
+
         final List<Box> data = this.query(new HashMap<String,Object>(){
             {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,object.getBoxID());}
         });
@@ -242,7 +243,12 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @param object object which should be removed
      */
     @Override
-    public void remove(Box object) {
+    public void remove(Box object) throws ObjectDoesNotExistException {
+        LOG.debug("Remove\t" + object);
+
+        //Check if Box exists
+        final Box check = this.query(object.getBoxID());
+
         try {
             delete.setInt(1, object.getBoxID());
             delete.executeUpdate();

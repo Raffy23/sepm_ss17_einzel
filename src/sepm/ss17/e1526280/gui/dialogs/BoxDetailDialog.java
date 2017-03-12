@@ -7,10 +7,11 @@ import sepm.ss17.e1526280.util.GlobalSettings;
 import java.io.IOException;
 
 /**
- * Created by
+ * A Dialog for the Box Detail view, in this View the details of the
+ * Box can be changed.
  *
  * @author Raphael Ludwig
- * @version 05.03.17
+ * @version 12.03.17
  */
 public class BoxDetailDialog extends CustomDialog<BoxCreationController> {
 

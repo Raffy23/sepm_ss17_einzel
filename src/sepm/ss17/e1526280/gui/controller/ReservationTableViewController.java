@@ -16,7 +16,8 @@ import javafx.stage.Stage;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.ReservationDataService;
+import sepm.ss17.e1526280.util.DataServiceManager;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.text.SimpleDateFormat;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by
@@ -48,7 +50,8 @@ public class ReservationTableViewController {
         }
 
         public float getPrice() {
-            return (float) boxes.stream().mapToDouble(Reservation::getPrice).sum();
+            final long days = TimeUnit.DAYS.convert(end.getTime()-start.getTime(),TimeUnit.MILLISECONDS);
+            return (float) boxes.stream().mapToDouble(reservation -> reservation.getPrice() * days).sum();
         }
 
         public int getCount() {
@@ -69,7 +72,7 @@ public class ReservationTableViewController {
     }
 
     private static final SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy");
-    private final DataService dataService = DataService.getService();
+    private final ReservationDataService dataService = DataServiceManager.getService().getReservationDataService();
     private final ObservableList<ReservationWrapper> dataList = FXCollections.observableList(new ArrayList<>());
 
     @FXML private TableView<ReservationWrapper> tableView;
@@ -124,7 +127,7 @@ public class ReservationTableViewController {
         });
 
         deleteCol.setCellFactory((TableColumn<ReservationWrapper, Void> boxStringTableColumn) -> new TableCell<ReservationWrapper, Void>() {
-            final Button deleteBtn = new Button("Delete");
+            final Button deleteBtn = new Button("Löschen");
 
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -147,8 +150,9 @@ public class ReservationTableViewController {
 
                         Optional<ButtonType> result = question.showAndWait();
                         if (result.get() == ButtonType.OK) {
-                            //dataService.delete(curObj);
-                            dataList.remove(curObj);
+                            dataService.delete(curObj.boxes)
+                                       .thenRun(() -> dataList.remove(curObj))
+                                       .exceptionally(DialogUtil::onError);
                         }
                     });
                 }
@@ -179,7 +183,7 @@ public class ReservationTableViewController {
         });
 
 
-        dataService.queryReservations()
+        dataService.queryGrouped()
                    .thenApply(lists -> {
                        Platform.runLater(() ->
                            lists.forEach(reservations ->
@@ -199,7 +203,7 @@ public class ReservationTableViewController {
         final Stage parentStage = (Stage) ((Button)event.getSource()).getScene().getWindow();
         final String fxml = GlobalSettings.FXML_ROOT+"/"+"reservation_boxchooser.fxml";
 
-        CustomDialog<ReservationChooserController> dialog = new CustomDialog<ReservationChooserController>(parentStage,"Choose your Boxes",fxml) {};
+        CustomDialog<ReservationChooserController> dialog = new CustomDialog<ReservationChooserController>(parentStage,GlobalSettings.APP_TITLE + ": Boxen auswählen",fxml) {};
         ReservationChooserController controller = dialog.getController();
 
         controller.setOkBtnEventHandler(event1 -> {
@@ -211,6 +215,8 @@ public class ReservationTableViewController {
             dataService.persist(controller.getReservations())
                        .thenAccept(this::addData)
                        .exceptionally(DialogUtil::onError);
+
+            ((Stage) ((Button)event1.getSource()).getScene().getWindow()).close();
         });
 
 

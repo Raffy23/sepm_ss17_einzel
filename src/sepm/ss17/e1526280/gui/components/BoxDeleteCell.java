@@ -6,7 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TableCell;
 import sepm.ss17.e1526280.dto.Box;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
+import sepm.ss17.e1526280.service.BoxDataService;
 
 import java.util.Optional;
 
@@ -18,11 +19,11 @@ import java.util.Optional;
  */
 public class BoxDeleteCell extends TableCell<Box, Void> {
 
-    private final DataService dataService;
+    private final BoxDataService dataService;
     private final ObservableList<Box> boxObservableList;
     private final Button deleteBtn = new Button("Löschen");
 
-    public BoxDeleteCell(DataService dataService, ObservableList<Box> boxObservableList) {
+    public BoxDeleteCell(BoxDataService dataService, ObservableList<Box> boxObservableList) {
         this.dataService = dataService;
         this.boxObservableList = boxObservableList;
     }
@@ -42,8 +43,9 @@ public class BoxDeleteCell extends TableCell<Box, Void> {
 
             deleteBtn.setOnAction(event -> {
                 if (askForDeletion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
-                    dataService.delete(curObj);
-                    boxObservableList.remove(curObj);
+                    dataService.remove(curObj)
+                               .thenRun(() -> boxObservableList.remove(curObj))
+                               .exceptionally(DialogUtil::onError);
                 }
             });
         }

@@ -1,18 +1,14 @@
 package sepm.ss17.e1526280.dto;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Created by
+ * Reservations DTO which contains only auto-generated methods
  *
  * @author Raphael Ludwig
  * @version 04.03.17
  */
 public class Reservation {
-
-    //This element is not Thread-Safe, so no multi-use over more than one instance!
-    private final SimpleDateFormat fmt = new SimpleDateFormat("dd.mm.yyyy");
 
     //Primary Key in Database
     private int id = -1;

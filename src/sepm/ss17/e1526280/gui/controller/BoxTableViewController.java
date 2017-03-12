@@ -20,7 +20,9 @@ import sepm.ss17.e1526280.gui.dialogs.BoxDetailDialog;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.SearchDialog;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.BoxDataService;
+import sepm.ss17.e1526280.util.DataServiceManager;
+import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,13 +42,14 @@ public class BoxTableViewController {
     private static final Logger LOG = LoggerFactory.getLogger(BoxTableViewController.class);
 
     //For Datasource etc ...
-    private final DataService dataService = DataService.getService();
+    private final BoxDataService boxDataService = DataServiceManager.getService().getBoxDataService();
 
     //Data list for the Table View
     private final ObservableList<Box> boxObservableList;
 
     //Some FXML Stuff
     @FXML private TableView<Box> boxTable;
+    @FXML private TableColumn<Box,Integer> boxIDCol;
     @FXML private TableColumn<Box,Float> boxPriceCol;
     @FXML private TableColumn<Box,Float> boxSizeCol;
     @FXML private TableColumn<Box,String> boxLitterCol;
@@ -69,6 +72,7 @@ public class BoxTableViewController {
         LOG.trace("initialize");
 
         //Set the Factories for the Data extraction
+        boxIDCol.setCellValueFactory(    new PropertyValueFactory<>("boxID"));
         boxPriceCol.setCellValueFactory( new PropertyValueFactory<>("price"));
         boxSizeCol.setCellValueFactory(  new PropertyValueFactory<>("size"));
         boxLitterCol.setCellValueFactory(new PropertyValueFactory<>("litter"));
@@ -79,12 +83,12 @@ public class BoxTableViewController {
         boxDeleteCol.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
 
         //Now set custom Table cell renders:
-        boxImageCol.setCellFactory((TableColumn<Box, String> boxStringTableColumn) -> new BoxImageCell(dataService));
-        boxEditCol.setCellFactory((TableColumn<Box, Void> boxStringTableColumn) -> new BoxViewEditCell(dataService,boxTable));
-        boxDeleteCol.setCellFactory((TableColumn<Box, Void> boxStringTableColumn) -> new BoxDeleteCell(dataService,boxObservableList));
+        boxImageCol.setCellFactory((TableColumn<Box, String> boxStringTableColumn) -> new BoxImageCell(boxDataService));
+        boxEditCol.setCellFactory((TableColumn<Box, Void> boxStringTableColumn) -> new BoxViewEditCell(boxDataService,boxTable));
+        boxDeleteCol.setCellFactory((TableColumn<Box, Void> boxStringTableColumn) -> new BoxDeleteCell(boxDataService,boxObservableList));
 
         //Load all the Box Data into the UI:
-        dataService.getAllBoxes().thenAcceptAsync(boxes -> {
+        boxDataService.queryVisible().thenAcceptAsync(boxes -> {
             LOG.info("Data was loaded successfully");
             Platform.runLater(() -> boxObservableList.setAll(boxes));
 
@@ -114,16 +118,18 @@ public class BoxTableViewController {
 
         try {
             //Create new Dialog for the Box creation
-            final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage,"Create a new Box");
+            final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": Neue Box anlegen");
             final BoxCreationController controller = dialog.getController();
 
             //register button handler to dialog
             controller.setOkBtnEventHandler(event1 -> {
-                if( !controller.validateInput() )
+                if( !controller.validateInput() ) {
+                    LOG.info("Input validation failed");
                     return;
+                }
 
                 //persist data from the dialog
-                dataService.persist(controller.generateBox())
+                boxDataService.persist(controller.generateBox())
                         .thenAccept(this::addData)
                         .exceptionally(DialogUtil::onError);
 
@@ -162,11 +168,11 @@ public class BoxTableViewController {
                 boxObservableList.clear();
 
                 //Search for the Data asynchronously
-                dataService.searchForBoxes( controller.getPrice()
-                                          , controller.getSize()
-                                          , controller.getLitter()
-                                          , controller.hasWindow()
-                                          , controller.isIndoor())
+                boxDataService.search( controller.getPrice()
+                                  , controller.getSize()
+                                  , controller.getLitter()
+                                  , controller.hasWindow()
+                                  , controller.isIndoor())
                         .thenAccept(this::setData)
                         .exceptionally(DialogUtil::onError);
 
@@ -191,9 +197,9 @@ public class BoxTableViewController {
         LOG.debug("onQueryAll Event received");
 
         boxObservableList.clear();
-        dataService.getAllBoxes()
-                   .thenAccept(this::setData)
-                   .exceptionally(DialogUtil::onError);
+        boxDataService.queryVisible()
+                      .thenAccept(this::setData)
+                      .exceptionally(DialogUtil::onError);
     }
 
     /**

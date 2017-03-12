@@ -6,24 +6,25 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import sepm.ss17.e1526280.dto.Box;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.BoxDataService;
 
 import java.io.File;
 
 /**
- * TODO: Comments
+ * A Simple Dialog which only displays the Image for a Box
+ *
  * @author Raphael Ludwig
  * @version 09.03.17
  */
 public class ImageDialog {
 
-    public ImageDialog(Box box, DataService service) {
+    public ImageDialog(Box box, BoxDataService service) {
         final Stage stage = new Stage();
 
         final BorderPane pane = new BorderPane();
         final Scene scene = new Scene(pane);
 
-        stage.setTitle("Image of Box (" + box.getBoxID() + ")");
+        stage.setTitle("Bild von der Box (" + box.getBoxID() + ")");
 
         final String resource = service.resolveImage(box).getAbsolutePath();
         final String rPath = new File(resource).toURI().getPath();

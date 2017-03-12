@@ -5,7 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.gui.dialogs.ImageDialog;
-import sepm.ss17.e1526280.service.DataService;
+import sepm.ss17.e1526280.service.BoxDataService;
 
 /**
  * Created by
@@ -14,10 +14,10 @@ import sepm.ss17.e1526280.service.DataService;
  * @version 09.03.17
  */
 public class BoxImageCell extends TableCell<Box, String> {
-    private final DataService dataService;
+    private final BoxDataService dataService;
     private final Button viewImage = new Button("Bild");
 
-    public BoxImageCell(DataService dataService) {
+    public BoxImageCell(BoxDataService dataService) {
         this.dataService = dataService;
     }
 

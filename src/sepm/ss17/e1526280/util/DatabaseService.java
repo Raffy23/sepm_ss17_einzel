@@ -1,11 +1,10 @@
-package sepm.ss17.e1526280.service;
+package sepm.ss17.e1526280.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.DatabaseManager;
 import sepm.ss17.e1526280.dao.Destroyable;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
-import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,7 +86,8 @@ public class DatabaseService {
         destroyListeners.clear();
 
         //Now destroy the manager and kill the connection to the DB
-        databaseManager.destroy();
+        if( databaseManager != null)
+            databaseManager.destroy();
         databaseManager = null;
     }
 
@@ -96,6 +96,8 @@ public class DatabaseService {
      * @throws IOException Is thrown if there was some Problem while cleaning up
      */
     public static void deleteDatabaseFiles() throws IOException {
+        LOG.info("Deleting Database files");
+
         if( databaseManager != null )
             LOG.warn("Deleting but Database-Files manager was initialized ... this might crash the Program!");
 
@@ -120,6 +122,7 @@ public class DatabaseService {
      * @throws SQLException is thrown if the SQL File could not be processed
      */
     public static void loadSetupSQL() throws IOException, SQLException {
+        LOG.info("Loading Setup-SQL File");
         databaseManager.executeSQLFile(GlobalSettings.getConfig().getProperty("database.setupfile"));
     }
 }

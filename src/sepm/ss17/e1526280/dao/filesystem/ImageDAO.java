@@ -61,6 +61,8 @@ public class ImageDAO {
      * @param name the name of the Image
      */
     public void deleteImage(String name) {
+        LOG.debug("delete " + name);
+
         try {
             Files.deleteIfExists(Paths.get(targetPath+"/"+name));
         } catch (IOException e) {
@@ -84,7 +86,7 @@ public class ImageDAO {
      * @return a unique name of the file (a 64 Char String)
      */
     private static String generateNewBlobFileName(String file) {
-
+        LOG.debug("Generate new Name for " + file);
         //We do generate a unique name by Hashing the Filename with SHA-256
         //Generate the stuff we need:
         MessageDigest md;

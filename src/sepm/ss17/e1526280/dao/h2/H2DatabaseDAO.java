@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.DatabaseDAO;
 import sepm.ss17.e1526280.dao.DatabaseManager;
 import sepm.ss17.e1526280.dao.exceptions.DatabaseException;
-import sepm.ss17.e1526280.service.DatabaseService;
+import sepm.ss17.e1526280.util.DatabaseService;
 
 import java.io.IOException;
 import java.sql.Connection;

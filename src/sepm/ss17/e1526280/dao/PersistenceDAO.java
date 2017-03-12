@@ -61,6 +61,6 @@ public interface PersistenceDAO<T> {
      * This function does remove the Object from the Datasource
      * @param o object which should be removed
      */
-    void remove(T o);
+    void remove(T o) throws ObjectDoesNotExistException;
 
 }
