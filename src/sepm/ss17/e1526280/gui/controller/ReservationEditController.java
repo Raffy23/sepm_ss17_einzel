@@ -14,8 +14,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationEntryWrapper;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
+import sepm.ss17.e1526280.service.ReservationDataService;
+import sepm.ss17.e1526280.util.DataServiceManager;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.time.LocalDate;
@@ -45,6 +49,7 @@ public class ReservationEditController {
     @FXML private DatePicker endDate;
 
     private final List<ReservationEntryWrapper> toDelete = new ArrayList<>();
+    private ReservationWrapper coreData = null;
 
     @FXML
     public void initialize() {
@@ -90,6 +95,8 @@ public class ReservationEditController {
     public void init(ReservationWrapper wrapper) {
         final List<ReservationEntryWrapper> convData = new ArrayList<>();
         wrapper.getBoxes().forEach(reservation -> convData.add(new ReservationEntryWrapper(reservation,wrapper.getDays())));
+        this.coreData = wrapper;
+
 
         customer.setText(wrapper.getName());
         startDate.setValue(wrapper.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
@@ -109,11 +116,19 @@ public class ReservationEditController {
         });
     }
 
+    /**
+     * This Method might trow a RuntimeException received from the Future in the Service
+     * @return true if the data is valid otherwise false
+     */
     public boolean validate() {
         if( customer.getText().length() <= 0 )
             return false;
 
-        return true;
+        final ReservationDataService service = DataServiceManager.getService().getReservationDataService();
+        final List<Box> currentBoxes = resTable.getItems().stream().map(Reservation::getBox).collect(Collectors.toList());
+        final List<Box> blocked = service.queryBlocked(currentBoxes, getStartDate(), getEndDate()).join();
+
+        return blocked.size() == currentBoxes.size();
     }
 
     public void setOkBtnEventHandler(EventHandler<ActionEvent> okBtnEventHandler) {

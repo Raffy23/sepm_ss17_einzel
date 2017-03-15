@@ -28,6 +28,7 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
 
     @Override
     public CompletableFuture<Box> persist(Box o) {
+        //TODO: make async
         final File f = imageDAO.persistImage(o.getPhoto());
         o.setPhoto(f.getName());
 

@@ -10,6 +10,8 @@ import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Optional;
 
 /**
@@ -41,20 +43,24 @@ public class ReservationDeleteCell extends TableCell<ReservationWrapper, Void> {
             setText(null);
 
             final ReservationWrapper curObj = getTableView().getItems().get(getIndex());
+            final LocalDate endDate = curObj.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if( LocalDate.now().isAfter(endDate) ) {
+                deleteBtn.setDisable(true);
+            } else {
+                deleteBtn.setOnAction(event -> {
+                    final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
+                    question.setTitle(GlobalSettings.APP_TITLE + ": " + "Bestätigung");
+                    question.setHeaderText("Löschen einer Reservierung");
+                    question.setContentText("Die Reservierung wird dauerhaft gelöscht.\nSind Sie sicher?");
 
-            deleteBtn.setOnAction(event -> {
-                final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
-                question.setTitle(GlobalSettings.APP_TITLE +": " + "Bestätigung");
-                question.setHeaderText("Löschen einer Reservierung");
-                question.setContentText("Die Reservierung wird dauerhaft gelöscht.\nSind Sie sicher?");
-
-                Optional<ButtonType> result = question.showAndWait();
-                if (result.get() == ButtonType.OK) {
-                    dataService.delete(curObj.getBoxes())
-                            .thenRun(() -> dataList.remove(curObj))
-                            .exceptionally(DialogUtil::onError);
-                }
-            });
+                    Optional<ButtonType> result = question.showAndWait();
+                    if (result.get() == ButtonType.OK) {
+                        dataService.delete(curObj.getBoxes())
+                                .thenRun(() -> dataList.remove(curObj))
+                                .exceptionally(DialogUtil::onError);
+                    }
+                });
+            }
         }
     }
 }

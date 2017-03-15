@@ -1,6 +1,7 @@
 package sepm.ss17.e1526280.gui.components;
 
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.stage.Stage;
@@ -14,6 +15,8 @@ import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +50,12 @@ public class ReservationEditCell extends TableCell<ReservationWrapper, Void> {
             setText(null);
 
             final ReservationWrapper curObj = getTableView().getItems().get(getIndex());
+            final LocalDate endDate = curObj.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if( LocalDate.now().isAfter(endDate) ) {
+                editBtn.setDisable(true);
+                return;
+            }
+
             editBtn.setOnAction(event -> {
                 final Stage parentStage = (Stage) ((Button) event.getSource()).getScene().getWindow();
                 final String fxml = GlobalSettings.FXML_ROOT + "/" + "reservation_editview.fxml";
@@ -56,10 +65,21 @@ public class ReservationEditCell extends TableCell<ReservationWrapper, Void> {
 
                 controller.init(curObj);
                 controller.setOkBtnEventHandler(event1 -> {
-                    if( !controller.validate() )
-                        return; //TODO: Tell the user that eh can't save
+                    try {
+                        if (!controller.validate()) {
+                            Alert warning = new Alert(Alert.AlertType.WARNING);
+                            warning.setTitle(GlobalSettings.APP_TITLE+": Warnung");
+                            warning.setHeaderText("Achtung: Es konnte keine Änderungen übernommen werden!");
+                            warning.setContentText("Es ist ein Validierungsfehler ausgetreten,\ndeswegen konnten keine Änderungen übernommen werden.\nBitte überprüfen Sie die eingegeben Daten und versuchen es erneut.");
+                            warning.show();
 
-                    System.out.println("edit reservation");
+                            return;
+                        }
+                    } catch( Exception e ) {
+                        DialogUtil.onError(e);
+                        return;
+                    }
+
                     final List<Reservation> deleteData = controller.getToDelete().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
                     final List<Reservation> updateData = controller.getToUpdate().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
 
@@ -90,7 +110,7 @@ public class ReservationEditCell extends TableCell<ReservationWrapper, Void> {
     }
 
     private Void onError(Throwable err) {
-        this.controller.loadData();
+        Platform.runLater(this.controller::loadData);
         Platform.runLater(() -> DialogUtil.onError(err));
 
         return null;

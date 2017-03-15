@@ -96,7 +96,8 @@ public class ReservationTableViewController {
     }
 
     public void loadData() {
-        dataService.queryGrouped()
+        dataList.clear();
+        dataService.queryGrouped(false)
                 .thenApply(lists -> {
                     Platform.runLater(() ->
                             lists.forEach(reservations ->

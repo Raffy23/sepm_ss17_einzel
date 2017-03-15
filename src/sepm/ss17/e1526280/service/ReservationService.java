@@ -30,13 +30,13 @@ public class ReservationService extends AbstractService<Reservation> implements 
     }
 
     @Override
-    public CompletableFuture<Collection<List<Reservation>>> queryGrouped() {
-        LOG.debug("Query Grouped");
+    public CompletableFuture<Collection<List<Reservation>>> queryGrouped(boolean isInvoice) {
+        LOG.debug("Query Grouped ("+isInvoice+")");
 
         return CompletableFuture.supplyAsync(() -> {
             final Map<Integer,List<Reservation>> dataCollector = new HashMap<>();
             final Map<String,Object> parameters = new HashMap<>();
-            parameters.put(ReservationPersistenceDAO.QUERY_PARAM_IS_INVOICE, Boolean.FALSE);
+            parameters.put(ReservationPersistenceDAO.QUERY_PARAM_IS_INVOICE, isInvoice);
 
             final List<Reservation> rawData = persistenceDAO.query(parameters);
 
@@ -98,6 +98,9 @@ public class ReservationService extends AbstractService<Reservation> implements 
 
     @Override
     public CompletableFuture<List<Reservation>> update(List<Reservation> o) {
-        return null;
+        return  CompletableFuture.supplyAsync(() -> {
+            persistenceDAO.merge(o);
+            return o;
+        });
     }
 }

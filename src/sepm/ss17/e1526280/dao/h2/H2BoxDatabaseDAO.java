@@ -67,7 +67,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * Closes all Resources which are held by this DAO
      */
     @Override
-    public void destroy() {
+    public synchronized void destroy() {
         LOG.trace("destroy");
 
         try {
@@ -89,7 +89,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @return a List of all found Elements
      */
     @Override
-    public List<Box> query(Map<String, Object> t) {
+    public synchronized List<Box> query(Map<String, Object> t) {
         final List<Box> data = new ArrayList<>();
         final StringBuilder rawStatement = new StringBuilder();
         rawStatement.append("SELECT * FROM Box");
@@ -152,7 +152,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @throws ObjectDoesAlreadyExistException thrown if the object already exists
      */
     @Override
-    public void persist(Box object) throws ObjectDoesAlreadyExistException {
+    public synchronized void persist(Box object) throws ObjectDoesAlreadyExistException {
         LOG.trace("Persist:\t"+object);
 
         try {
@@ -211,7 +211,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @throws ObjectDoesNotExistException thrown if the Object does not exist in the Database
      */
     @Override
-    public void merge(Box object) throws ObjectDoesNotExistException {
+    public synchronized void merge(Box object) throws ObjectDoesNotExistException {
         LOG.debug("Merge\t" + object);
 
         try {
@@ -237,7 +237,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @param object object which should be removed
      */
     @Override
-    public void remove(Box object) throws ObjectDoesNotExistException {
+    public synchronized void remove(Box object) throws ObjectDoesNotExistException {
         LOG.debug("Remove\t" + object);
 
         try {

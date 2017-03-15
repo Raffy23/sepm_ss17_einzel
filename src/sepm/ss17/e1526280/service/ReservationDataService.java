@@ -19,9 +19,10 @@ public interface ReservationDataService extends BasicService<Reservation> {
 
     /**
      * Queries all the Reservations grouped by their reservation ID
+     * @param isInvoice a flag if the invoice or the reservations should be queried
      * @return a future with a list of reservation lists
      */
-    CompletableFuture<Collection<List<Reservation>>> queryGrouped();
+    CompletableFuture<Collection<List<Reservation>>> queryGrouped(boolean isInvoice);
 
     /**
      * Removes all reservations given
@@ -54,5 +55,7 @@ public interface ReservationDataService extends BasicService<Reservation> {
      * @return a future with the list of reservations given as argument
      */
     CompletableFuture<List<Reservation>> update(List<Reservation> o);
+
+
 
 }
