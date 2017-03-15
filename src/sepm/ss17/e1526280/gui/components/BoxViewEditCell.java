@@ -59,7 +59,7 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
 
                 //Open a new Dialog for the Box editing
                 try {
-                    final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, "Edit Box data");
+                    final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": " + "Box bearbeiten");
                     final BoxCreationController controller = dialog.getController();
 
                     //Init the Dialog with some Data

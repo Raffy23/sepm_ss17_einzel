@@ -15,7 +15,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -215,13 +214,6 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
     public void merge(Box object) throws ObjectDoesNotExistException {
         LOG.debug("Merge\t" + object);
 
-        final List<Box> data = this.query(new HashMap<String,Object>(){
-            {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,object.getBoxID());}
-        });
-
-        if( data.size() < 1 )
-            throw new ObjectDoesNotExistException();
-
         try {
             update.setFloat(1,object.getPrice());
             update.setFloat(2,object.getSize());
@@ -229,10 +221,12 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
             update.setBoolean(4,object.isWindow());
             update.setBoolean(5,object.isIndoor());
             update.setString(6,object.getPhoto());
-            update.setInt(8,object.getBoxID());
             update.setBoolean(7,object.isDeleted());
+            update.setInt(8,object.getBoxID());
 
-            update.executeUpdate();
+            if( update.executeUpdate() == 0) {
+                throw new ObjectDoesNotExistException();
+            }
         } catch (SQLException e) {
             throw new ObjectDoesNotExistException();
         }
@@ -246,12 +240,11 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
     public void remove(Box object) throws ObjectDoesNotExistException {
         LOG.debug("Remove\t" + object);
 
-        //Check if Box exists
-        final Box check = this.query(object.getBoxID());
-
         try {
             delete.setInt(1, object.getBoxID());
-            delete.executeUpdate();
+            if( delete.executeUpdate() == 0 )
+                throw new ObjectDoesNotExistException();
+
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }

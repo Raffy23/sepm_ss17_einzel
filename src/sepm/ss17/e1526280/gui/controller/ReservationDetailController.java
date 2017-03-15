@@ -9,8 +9,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-import sepm.ss17.e1526280.dto.Reservation;
+import sepm.ss17.e1526280.gui.controller.wrapper.ReservationEntryWrapper;
+import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 
+import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,21 +25,28 @@ import java.util.List;
 public class ReservationDetailController {
 
     @FXML private Label customerName;
-    @FXML private TableView<Reservation> resTable;
-    @FXML private TableColumn<Reservation,Integer> boxCol;
-    @FXML private TableColumn<Reservation,String> horseCol;
-    @FXML private TableColumn<Reservation,Float> priceCol;
+    @FXML private TableView<ReservationEntryWrapper> resTable;
+    @FXML private TableColumn<ReservationEntryWrapper,Integer> boxCol;
+    @FXML private TableColumn<ReservationEntryWrapper,String> horseCol;
+    @FXML private TableColumn<ReservationEntryWrapper,Float> priceCol;
+    @FXML private TableColumn<ReservationEntryWrapper,Float> sumPriceCol;
+    @FXML private Label priceLabel;
 
     @FXML
     public void initialize() {
         boxCol.setCellValueFactory(new PropertyValueFactory<>("boxId"));
         horseCol.setCellValueFactory(new PropertyValueFactory<>("horse"));
         priceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
+        sumPriceCol.setCellValueFactory(new PropertyValueFactory<>("priceSum"));
     }
 
-    public void init(List<Reservation> reservation) {
-        customerName.setText(reservation.get(0).getCustomer());
-        resTable.setItems(FXCollections.observableArrayList(reservation));
+    public void init(ReservationWrapper wrapper) {
+        final List<ReservationEntryWrapper> convData = new ArrayList<>();
+        wrapper.getBoxes().forEach(reservation -> convData.add(new ReservationEntryWrapper(reservation,wrapper.getDays())));
+
+        customerName.setText(wrapper.getName());
+        priceLabel.setText(NumberFormat.getInstance().format(wrapper.getPrice()));
+        resTable.setItems(FXCollections.observableArrayList(convData));
     }
 
     @FXML

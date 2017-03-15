@@ -18,7 +18,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,8 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
     private final PreparedStatement queryID;
     private final PreparedStatement insert;
     private final PreparedStatement delete;
-    private final PreparedStatement selectByID;
+    private final PreparedStatement update;
+    private final PreparedStatement reservedCount;
 
     public H2ReservationDatabaseDAO() {
         super(DatabaseService.getManager(),"Reservation");
@@ -50,7 +50,8 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             insert = connection.prepareStatement("INSERT INTO RESERVATION (RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE) VALUES (?,?,?,?,?,?,?,?)");
             delete = connection.prepareStatement("DELETE FROM RESERVATION WHERE RESERVATIONID=? AND BOXID=?");
             queryID = connection.prepareStatement("SELECT MAX(RESERVATIONID) FROM RESERVATION");
-            selectByID = connection.prepareStatement("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM RESERVATION WHERE RESERVATIONID = ?");
+            update = connection.prepareStatement("UPDATE RESERVATION SET ALREADYINVOICE=? WHERE RESERVATIONID=?");
+            reservedCount = connection.prepareStatement("SELECT COUNT(*) FROM RESERVATION WHERE boxid = ? AND ((? < start AND ? > end) OR (? BETWEEN start and end OR ? BETWEEN start and end))");
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -65,7 +66,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             insert.close();
             delete.close();
             queryID.close();
-            selectByID.close();
+            update.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -73,23 +74,46 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     @Override
     public List<Reservation> query(Map<String, Object> param) {
-        LOG.error("Currently all parameters are ignored in the Query!");
         final List<Reservation> data = new ArrayList<>();
+        final StringBuilder rawStatement = new StringBuilder();
+        rawStatement.append("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM Reservation");
+
+        //Build SQL-String for the prepared Statement
+        if(!param.isEmpty() ) {
+            rawStatement.append(" WHERE ");
+
+            if (param.containsKey(QUERY_PARAM_IS_INVOICE)) rawStatement.append(" alreadyinvoice=?");
+            if (param.containsKey(QUERY_PARAM_LIMIT)) rawStatement.append(" LIMIT ").append(param.get(QUERY_PARAM_LIMIT));
+        }
 
         try {
-            final Statement statement = getConnection().createStatement();
-            final ResultSet rs = statement.executeQuery("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE  FROM RESERVATION");
-            LOG.debug("Query:\t"+rs);
+            final PreparedStatement s = getConnection().prepareStatement(rawStatement.toString());
+            LOG.debug("Query:\t"+s + " with data " + param);
+            int position = 1;
 
-            while( rs.next() ) {
-                final Box box = boxDAO.query(rs.getInt(2));
-                data.add(new Reservation(rs.getInt(1),box,rs.getDate(3),rs.getDate(4),rs.getString(5),rs.getString(6),rs.getFloat(7),rs.getBoolean(8)));
+            //Fill the Data into the Statement
+            if( !param.isEmpty() ) {
+                if (param.containsKey(QUERY_PARAM_IS_INVOICE)) s.setBoolean(position, (Boolean) param.get(QUERY_PARAM_IS_INVOICE));
             }
 
-            rs.close();
-            statement.close();
+            //Finally execute Query
+            final ResultSet rs = s.executeQuery();
+            while( rs.next() ) {
+                final Box box = boxDAO.query(rs.getInt(2));
+                data.add( new Reservation(rs.getInt(1)
+                        , box
+                        , new java.util.Date(rs.getDate(3).getTime())
+                        , new java.util.Date(rs.getDate(4).getTime())
+                        , rs.getString(5)
+                        , rs.getString(6)
+                        , rs.getFloat(7)
+                        , rs.getBoolean(8))
+                );
+            }
+
+            s.close();
         } catch (SQLException | ObjectDoesNotExistException e) {
-            e.printStackTrace();
+            throw new DatabaseException(e);
         }
 
         return data;
@@ -130,7 +154,22 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     @Override
     public void merge(Reservation o) throws ObjectDoesNotExistException {
-        LOG.error("Merge operation is not implemented!");
+        LOG.info("Merge operation is ignore everything execpt the field 'alreadyinvoice'!");
+
+        try {
+            update.setBoolean(1,o.isAlreadyInvoice());
+            update.setInt(2,o.getId());
+
+            if( update.executeUpdate() == 0 )
+                throw new ObjectDoesNotExistException();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public void merge(List<Reservation> o) {
         throw new NotImplementedException();
     }
 
@@ -169,9 +208,48 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             insert.executeBatch();
 
         } catch (SQLException e) {
-            e.printStackTrace();
             throw new ObjectDoesAlreadyExistException();
         }
 
+    }
+
+    @Override
+    public boolean isBoxReserved(Box box, java.util.Date start, java.util.Date end) {
+        //SELECT COUNT(*) FROM table WHERE boxid = box.getID AND box.start >= start AND box.start <= end AND box.end <= end AND box.end >= start
+
+        try {
+            reservedCount.setInt(1,box.getBoxID());
+            reservedCount.setDate(2,new Date(start.getTime()));
+            reservedCount.setDate(3,new Date(end.getTime()));
+            reservedCount.setDate(4,new Date(start.getTime()));
+            reservedCount.setDate(5,new Date(end.getTime()));
+
+            final ResultSet rs = reservedCount.executeQuery();
+            rs.next();
+
+            int count = rs.getInt(1);
+            return count > 0;
+        } catch (SQLException e) {
+            throw new DataException(e);
+        }
+    }
+
+    @Override
+    public void remove(List<Reservation> o) {
+        LOG.debug("Batch-Remove\t" + o);
+
+        try {
+            for(Reservation oo:o){
+                delete.setInt(1, oo.getId());
+                delete.setInt(2, oo.getBoxId());
+                delete.addBatch();
+            }
+
+            if( delete.executeUpdate() != o.size() )
+                throw new DataException(new ObjectDoesNotExistException());
+
+        } catch (SQLException e) {
+            throw new DataException(e);
+        }
     }
 }

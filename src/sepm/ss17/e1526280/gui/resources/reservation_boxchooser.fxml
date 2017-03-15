@@ -21,8 +21,10 @@
       </TableView>
       <ButtonBar layoutX="98.0" layoutY="498.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <buttons>
+            <Button mnemonicParsing="false" onAction="#onViewAll" text="Alle Boxen anzeigen" />
+            <Button mnemonicParsing="false" onAction="#onSearchBox" text="Box Suchen" />
             <Button mnemonicParsing="false" onAction="#onCancel" text="Abbrechen" />
-            <Button fx:id="continueBtn" mnemonicParsing="false" text="Weiter &gt;" />
+            <Button fx:id="continueBtn" mnemonicParsing="false" text="Reservieren" />
          </buttons>
          <padding>
             <Insets right="5.0" />

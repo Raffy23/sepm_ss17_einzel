@@ -133,7 +133,6 @@ public class Main extends Application {
                 DataServiceManager.initialize(backend, serviceProvider);
 
                 return true;
-
             } catch (Exception e) {
                 LOG.error("Unable to initialize Database refusing Start of Application!");
                 DialogUtil.onFatal(e);

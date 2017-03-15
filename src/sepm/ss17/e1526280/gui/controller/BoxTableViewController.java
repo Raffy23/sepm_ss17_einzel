@@ -157,35 +157,29 @@ public class BoxTableViewController {
         final Button source = (Button) event.getSource();
         final Stage parentStage = (Stage) source.getScene().getWindow();
 
-        try {
-            //Create new Dialog for the Box creation
-            final CustomDialog<BoxSearchController> dialog = new SearchDialog(parentStage);
-            final BoxSearchController controller = dialog.getController();
+        //Create new Dialog for the Box creation
+        final CustomDialog<BoxSearchController> dialog = new SearchDialog(parentStage);
+        final BoxSearchController controller = dialog.getController();
 
-            //register button handler to dialog
-            controller.setSearchActionListener(event1 -> {
-                //Clear the List
-                boxObservableList.clear();
+        //register button handler to dialog
+        controller.setSearchActionListener(event1 -> {
+            //Clear the List
+            boxObservableList.clear();
 
-                //Search for the Data asynchronously
-                boxDataService.search( controller.getPrice()
-                                  , controller.getSize()
-                                  , controller.getLitter()
-                                  , controller.hasWindow()
-                                  , controller.isIndoor())
-                        .thenAccept(this::setData)
-                        .exceptionally(DialogUtil::onError);
+            //Search for the Data asynchronously
+            boxDataService.search( controller.getPrice()
+                              , controller.getSize()
+                              , controller.getLitter()
+                              , controller.hasWindow()
+                              , controller.isIndoor())
+                    .thenAccept(this::setData)
+                    .exceptionally(DialogUtil::onError);
 
-                final Button btn = (Button) event1.getSource();
-                ((Stage)btn.getScene().getWindow()).close();
-            });
+            final Button btn = (Button) event1.getSource();
+            ((Stage)btn.getScene().getWindow()).close();
+        });
 
-            dialog.show();
-        } catch (IOException e) {
-            System.err.println("Fatal: Unable to create BoxDetailDialog!");
-            DialogUtil.onFatal(e);
-        }
-
+        dialog.show();
     }
 
     /**

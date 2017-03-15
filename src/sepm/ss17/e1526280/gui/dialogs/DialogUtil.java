@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sepm.ss17.e1526280.util.DatabaseService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 /**
@@ -54,6 +55,7 @@ public class DialogUtil {
             alert.setContentText("Das Program muss beendet werden");
             alert.showAndWait();
 
+            DatabaseService.destroyService();
             Platform.exit();
         });
 

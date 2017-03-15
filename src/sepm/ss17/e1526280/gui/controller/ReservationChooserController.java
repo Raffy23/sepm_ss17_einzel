@@ -17,10 +17,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
+import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
+import sepm.ss17.e1526280.gui.dialogs.SearchDialog;
 import sepm.ss17.e1526280.service.BoxDataService;
+import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.DataServiceManager;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -86,17 +90,18 @@ public class ReservationChooserController {
     @FXML private DatePicker endDate;
 
     private final BoxDataService boxService = DataServiceManager.getService().getBoxDataService();
+    private final ReservationDataService reservationDataService = DataServiceManager.getService().getReservationDataService();
 
     @FXML
     public void initialize() {
-        boxPriceCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, Float>("price"));
-        boxSizeCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, Float>("size"));
-        boxLitterCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, String>("litter"));
-        boxWindowCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, Boolean>("window"));
-        boxIndoorCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, Boolean>("indoor"));
-        boxImageCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, String>("photo"));
-        resTabCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, CheckBox>("checkedBox"));
-        horseTabCol.setCellValueFactory(new PropertyValueFactory<BoxUIWrapper, TextField>("horseName"));
+        boxPriceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
+        boxSizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
+        boxLitterCol.setCellValueFactory(new PropertyValueFactory<>("litter"));
+        boxWindowCol.setCellValueFactory(new PropertyValueFactory<>("window"));
+        boxIndoorCol.setCellValueFactory(new PropertyValueFactory<>("indoor"));
+        boxImageCol.setCellValueFactory(new PropertyValueFactory<>("photo"));
+        resTabCol.setCellValueFactory(new PropertyValueFactory<>("checkedBox"));
+        horseTabCol.setCellValueFactory(new PropertyValueFactory<>("horseName"));
 
         resTabCol.setCellFactory((TableColumn<BoxUIWrapper, CheckBox> boxStringTableColumn) -> new TableCell<BoxUIWrapper, CheckBox>() {
             @Override
@@ -130,11 +135,24 @@ public class ReservationChooserController {
 
         });
 
-        boxService.queryAll().thenAccept(boxes -> {
-            final List<BoxUIWrapper> dataList = boxes.stream().map(BoxUIWrapper::new).collect(Collectors.toList());
-            final ObservableList<BoxUIWrapper> tableContent = FXCollections.observableArrayList(dataList);
-            Platform.runLater(() -> boxTable.setItems(tableContent));
-        }).exceptionally(DialogUtil::onFatal);
+        startDate.setValue(LocalDate.now());
+        endDate.setValue(LocalDate.now());
+
+        startDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            if( newValue.isAfter(endDate.getValue()) || newValue.isBefore(LocalDate.now()) )
+                startDate.setValue(oldValue);
+            else
+                updateData();
+        });
+
+        endDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            if( newValue.isBefore(startDate.getValue()) )
+                endDate.setValue(oldValue);
+            else
+                updateData();
+        });
+
+        boxService.queryAll().thenAccept(this::setData).exceptionally(DialogUtil::onFatal);
     }
 
     public boolean validate() {
@@ -180,8 +198,94 @@ public class ReservationChooserController {
     }
 
     @FXML
+    public void onSearchBox(ActionEvent event) {
+        final Button source = (Button) event.getSource();
+        final Stage parentStage = (Stage) source.getScene().getWindow();
+
+        final CustomDialog<BoxSearchController> dialog = new SearchDialog(parentStage);
+        final BoxSearchController controller = dialog.getController();
+
+        boxTable.getItems().clear();
+
+        //register button handler to dialog
+        controller.setSearchActionListener(event1 -> {
+
+            //Search for the Data asynchronously
+            boxService.search(controller.getPrice()
+                            , controller.getSize()
+                            , controller.getLitter()
+                            , controller.hasWindow()
+                            , controller.isIndoor())
+                    .thenAccept(this::setData)
+                    .exceptionally(DialogUtil::onError);
+
+            final Button btn = (Button) event1.getSource();
+            ((Stage) btn.getScene().getWindow()).close();
+
+        });
+
+        dialog.show();
+    }
+
+    @FXML
+    public void onViewAll(ActionEvent event) {
+        boxTable.getItems().clear();
+        boxService.queryAll().thenAccept(this::setData).exceptionally(DialogUtil::onFatal);
+    }
+
+    @FXML
     public void onCancel(ActionEvent event) {
         ((Stage) ((Button)event.getSource()).getScene().getWindow()).close();
+    }
+
+    private void setData(List<Box> boxes) {
+        final List<BoxUIWrapper> dataList = boxes.stream().map(BoxUIWrapper::new).collect(Collectors.toList());
+
+        Platform.runLater(() -> {
+            final Date startDate = Date.from(this.startDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            final Date endDate = Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            reservationDataService.queryBlocked(boxes,startDate,endDate)
+                                  .thenAccept(boxes1 -> {
+                                      boxes1.forEach(box ->
+                                          dataList.stream()
+                                                  .filter(boxUIWrapper -> boxUIWrapper.getBoxID() == box.getBoxID())
+                                                  .findFirst()
+                                                  .ifPresent(boxUIWrapper -> boxUIWrapper.checkBox.setDisable(true))
+                                      );
+
+                                      final ObservableList<BoxUIWrapper> tableContent = FXCollections.observableArrayList(dataList);
+                                      Platform.runLater(() -> boxTable.setItems(tableContent));
+                                  }).exceptionally(DialogUtil::onError);
+
+        });
+    }
+
+    private void updateData() {
+        final List<BoxUIWrapper> dataList = boxTable.getItems().stream().collect(Collectors.toList());
+        final List<Box> boxList = new ArrayList<>(dataList);
+
+        Platform.runLater(() -> {
+            final Date startDate = Date.from(this.startDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            final Date endDate = Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+            reservationDataService.queryBlocked(boxList,startDate,endDate)
+                    .thenAccept(boxes1 -> {
+                        dataList.forEach(boxUIWrapper -> boxUIWrapper.checkBox.setDisable(false));
+
+                        boxes1.forEach(box ->
+                            dataList.stream()
+                                    .filter(boxUIWrapper -> boxUIWrapper.getBoxID() == box.getBoxID())
+                                    .findFirst()
+                                    .ifPresent(boxUIWrapper -> {
+                                        boxUIWrapper.checkBox.setSelected(false);
+                                        boxUIWrapper.textField.setDisable(true);
+                                        boxUIWrapper.checkBox.setDisable(true);
+                                    })
+                        );
+                    })
+                    .exceptionally(DialogUtil::onError);
+        });
     }
 
 }

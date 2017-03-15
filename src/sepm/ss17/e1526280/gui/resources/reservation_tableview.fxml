@@ -9,17 +9,22 @@
    <children>
       <TableView fx:id="tableView" layoutX="128.0" layoutY="196.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <columns>
-            <TableColumn fx:id="customerCol" prefWidth="169.0" text="Kunde" />
-            <TableColumn prefWidth="161.0" text="Boxen">
+            <TableColumn fx:id="customerCol" prefWidth="133.0" text="Kunde" />
+            <TableColumn prefWidth="121.0" text="Boxen">
                <columns>
-                  <TableColumn fx:id="boxCountColl" prefWidth="37.0" text="#" />
-                  <TableColumn fx:id="boxDetailCol" prefWidth="113.0" text="Details" />
+                  <TableColumn fx:id="boxCountColl" prefWidth="28.0" text="#" />
+                  <TableColumn fx:id="boxDetailCol" prefWidth="83.0" text="Details" />
                </columns></TableColumn>
-            <TableColumn fx:id="priceCol" prefWidth="101.0" text="Ges. Preis" />
-            <TableColumn fx:id="startCol" prefWidth="106.0" text="Start" />
-            <TableColumn fx:id="endCol" prefWidth="99.0" text="End" />
-            <TableColumn fx:id="deleteCol" text="Löschen" />
-            <TableColumn fx:id="invoiceCol" prefWidth="90.0" text="Rechnung" />
+            <TableColumn fx:id="priceCol" prefWidth="104.0" text="Ges. Preis" />
+            <TableColumn fx:id="startCol" prefWidth="90.0" text="Start" />
+            <TableColumn fx:id="endCol" prefWidth="84.0" text="End" />
+            <TableColumn prefWidth="-1.0" text="Aktionen">
+               <columns>
+                  <TableColumn fx:id="editCol" prefWidth="94.0" text="Bearbeiten" />
+                  <TableColumn fx:id="deleteCol" prefWidth="77.0" text="Löschen" />
+                  <TableColumn fx:id="invoiceCol" prefWidth="100.0" text="Rechnung" />
+               </columns>
+            </TableColumn>
          </columns>
       </TableView>
       <ButtonBar layoutX="382.0" layoutY="498.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">

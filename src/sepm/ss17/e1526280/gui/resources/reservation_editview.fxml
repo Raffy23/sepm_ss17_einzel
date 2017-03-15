@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="498.0" prefWidth="807.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sepm.ss17.e1526280.gui.controller.ReservationEditController">
+   <children>
+      <ButtonBar layoutX="115.0" layoutY="325.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+        <buttons>
+          <Button mnemonicParsing="false" onAction="#onClose" text="Schließen" />
+            <Button fx:id="okBtn" mnemonicParsing="false" text="Übernehmen" />
+        </buttons>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" />
+         </padding>
+      </ButtonBar>
+      <Label layoutX="14.0" layoutY="14.0" text="Kunde:" AnchorPane.leftAnchor="15.0" AnchorPane.topAnchor="15.0">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <TableView fx:id="resTable" layoutX="15.0" layoutY="80.0" prefHeight="309.0" prefWidth="600.0" AnchorPane.bottomAnchor="39.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="52.0">
+        <columns>
+          <TableColumn fx:id="boxCol" prefWidth="75.0" text="Box" />
+            <TableColumn fx:id="horseCol" prefWidth="199.0" text="Pferd" />
+          <TableColumn fx:id="priceCol" prefWidth="108.0" text="Preis" />
+            <TableColumn fx:id="delCol" prefWidth="117.0" text="Löschen" />
+        </columns>
+      </TableView>
+      <TextField fx:id="customer" layoutX="108.0" layoutY="17.0" prefHeight="26.0" prefWidth="143.0" />
+      <DatePicker fx:id="startDate" layoutX="350.0" layoutY="17.0" />
+      <DatePicker fx:id="endDate" layoutX="595.0" layoutY="17.0" />
+      <Label layoutX="318.0" layoutY="22.0" text="Von" />
+      <Label layoutX="561.0" layoutY="22.0" text="bis" />
+   </children>
+</AnchorPane>
