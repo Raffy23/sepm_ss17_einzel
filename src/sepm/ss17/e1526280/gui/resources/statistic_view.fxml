@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Label text="In einem Zeitraum:">
+               <padding>
+                  <Insets bottom="5.0" />
+               </padding>
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+            <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Best gebuchte Box" />
+            <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Schlecht gebuchte Box" />
+            <Separator prefWidth="200.0">
+               <VBox.margin>
+                  <Insets bottom="5.0" top="5.0" />
+               </VBox.margin>
+            </Separator>
+            <Label text="An bestimmten &#10;Wochentagen:">
+               <font>
+                  <Font size="16.0" />
+               </font>
+               <VBox.margin>
+                  <Insets bottom="5.0" />
+               </VBox.margin>
+            </Label>
+            <Button mnemonicParsing="false" prefWidth="200.0" text="Best gebuchte Box" />
+            <Button mnemonicParsing="false" prefWidth="200.0" text="Schlecht gebuchte Box" />
+         </children>
+      </VBox>
+      <BarChart layoutX="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="205.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <xAxis>
+          <CategoryAxis side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis side="LEFT" />
+        </yAxis>
+      </BarChart>
+   </children>
+</AnchorPane>

@@ -30,15 +30,10 @@
    <center>
       <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
         <tabs>
-          <Tab fx:id="boxesTab" text="Boxen" />
-          <Tab fx:id="reservationsTab" text="Reservierungen" />
-          <Tab fx:id="invoiceTab" text="Rechnungen">
-          </Tab>
-            <Tab text="Statistik">
-              <content>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
-              </content>
-            </Tab>
+            <Tab fx:id="boxesTab" text="Boxen" />
+            <Tab fx:id="reservationsTab" text="Reservierungen" />
+            <Tab fx:id="invoiceTab" text="Rechnungen"/>
+            <Tab fx:id="statisticTab" text="Statistik"/>
         </tabs>
          <BorderPane.margin>
             <Insets />

@@ -20,10 +20,12 @@ public class MainWindowController {
     private static final String BOX_FRAGMENT = GlobalSettings.FXML_ROOT+"box_tableview.fxml";
     private static final String RES_FRAGMENT = GlobalSettings.FXML_ROOT+"reservation_tableview.fxml";
     private static final String INV_FRAGMENT = GlobalSettings.FXML_ROOT+"invoice_tableview.fxml";
+    private static final String STA_FRAGMENT = GlobalSettings.FXML_ROOT+"statistic_view.fxml";
 
     @FXML private Tab boxesTab;
     @FXML private Tab reservationsTab;
     @FXML private Tab invoiceTab;
+    @FXML private Tab statisticTab;
 
     @FXML
     public void initialize() {
@@ -31,6 +33,7 @@ public class MainWindowController {
         final FXMLLoader boxFragment = new FXMLLoader(getClass().getResource(BOX_FRAGMENT));
         final FXMLLoader resFragment = new FXMLLoader(getClass().getResource(RES_FRAGMENT));
         final FXMLLoader invFragment = new FXMLLoader(getClass().getResource(INV_FRAGMENT));
+        final FXMLLoader staFragment = new FXMLLoader(getClass().getResource(STA_FRAGMENT));
 
         try {
             final Pane boxRoot = boxFragment.load();
@@ -41,6 +44,9 @@ public class MainWindowController {
 
             final Pane invRoot = invFragment.load();
             invoiceTab.setContent(invRoot);
+
+            final Pane staRoot = staFragment.load();
+            statisticTab.setContent(staRoot);
 
         } catch (IOException e) {
             DialogUtil.onFatal(e);
