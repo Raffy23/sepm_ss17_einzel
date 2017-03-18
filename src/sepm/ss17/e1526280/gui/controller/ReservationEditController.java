@@ -14,6 +14,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationEntryWrapper;
@@ -38,6 +40,9 @@ import java.util.stream.Collectors;
  */
 public class ReservationEditController {
 
+    /** Logger for logging **/
+    private static final Logger LOG = LoggerFactory.getLogger(ReservationEditController.class);
+
     @FXML private Button okBtn;
     @FXML private TableView<ReservationEntryWrapper> resTable;
     @FXML private TableColumn<ReservationEntryWrapper,Integer> boxCol;
@@ -49,8 +54,11 @@ public class ReservationEditController {
     @FXML private DatePicker endDate;
 
     private final List<ReservationEntryWrapper> toDelete = new ArrayList<>();
-    private ReservationWrapper coreData = null;
+    private ReservationWrapper coreData;
 
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         boxCol.setCellValueFactory(new PropertyValueFactory<>("boxId"));
@@ -126,15 +134,32 @@ public class ReservationEditController {
 
         final ReservationDataService service = DataServiceManager.getService().getReservationDataService();
         final List<Box> currentBoxes = resTable.getItems().stream().map(Reservation::getBox).collect(Collectors.toList());
-        final List<Box> blocked = service.queryBlocked(currentBoxes, getStartDate(), getEndDate()).join();
+        final List<Integer> reservations = coreData.getBoxes()
+                                                   .stream()
+                                                   .mapToInt(Reservation::getId)
+                                                   .boxed()
+                                                   .collect(Collectors.toList());
 
-        return blocked.size() == currentBoxes.size();
+        boolean noOverlap = true;
+        for(Box box: currentBoxes) {
+            noOverlap = service.queryFor(box, getStartDate(), getEndDate()).join()
+                                                                            .stream()
+                                                                            .mapToInt(Reservation::getId)
+                                                                            .boxed()
+                                                                            .allMatch(reservations::contains);
+            if( !noOverlap )
+                break;
+        }
+
+        return noOverlap;
     }
 
     public void setOkBtnEventHandler(EventHandler<ActionEvent> okBtnEventHandler) {
         okBtn.setOnAction(okBtnEventHandler);
     }
 
+    @FXML
+    @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
     public void onClose(ActionEvent event) {
         ((Stage) ((Button)event.getSource()).getScene().getWindow()).close();
     }

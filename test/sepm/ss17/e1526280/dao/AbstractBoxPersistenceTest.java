@@ -1,20 +1,13 @@
 package sepm.ss17.e1526280.dao;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.h2.H2BoxDatabaseDAO;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
-import sepm.ss17.e1526280.util.DatabaseService;
-import sepm.ss17.e1526280.util.GlobalSettings;
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,37 +20,30 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author Raphael Ludwig
  * @version 04.03.17
  */
-public class BoxPersistenceTest {
+public abstract class AbstractBoxPersistenceTest {
 
-    private static BoxPersistenceDAO dao;
+    protected final BoxPersistenceDAO dao;
 
-    @BeforeClass
-    public static void setUp()  {
-        GlobalSettings.initialize("./config.junit.properties");
-        try {
-            DatabaseService.initialize();
-        } catch (CheckedDatabaseException e) {
-            throw new RuntimeException(e);
-        }
-
-        dao = new H2BoxDatabaseDAO();
+    protected AbstractBoxPersistenceTest(BoxPersistenceDAO dao) {
+        this.dao = dao;
     }
 
     @Test
     public void insertNewBox() throws ObjectDoesAlreadyExistException {
-        dao.persist(new Box(23f,23f, LitterType.Sawdust,true,false,null));
+        dao.persist(new Box(23.0f, 23.0f, LitterType.Sawdust,true,false,null));
     }
 
     @Test(expected = ObjectDoesAlreadyExistException.class)
     public void insertCollision() throws ObjectDoesAlreadyExistException {
-        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
-        dao.persist(new Box(99,23f,23f, LitterType.Sawdust,true,false,null,false));
-        Assert.fail();
+        dao.persist(new Box(99, 23.0f, 23.0f, LitterType.Sawdust,true,false,null,false));
+        dao.persist(new Box(99, 23.0f, 23.0f, LitterType.Sawdust,true,false,null,false));
+
+        Assert.fail("Persist must throw an ObjectDoesAlreadyExist Exception");
     }
 
     @Test
     public void insertAndRead() throws ObjectDoesAlreadyExistException {
-        final Box target = new Box(23f,23f, LitterType.Sawdust,true,false,null);
+        final Box target = new Box(23.0f, 23.0f, LitterType.Sawdust,true,false,null);
         dao.persist(target);
         List<Box> box = dao.query(new HashMap<String,Object>(){
             {this.put(H2BoxDatabaseDAO.QUERY_PARAM_BOX_ID,target.getBoxID());}
@@ -125,6 +111,8 @@ public class BoxPersistenceTest {
         final int oldID = target.getBoxID();
         target.setBoxID(10000);
         dao.remove(target);
+
+        Assert.fail("Remove function must throw an Exception");
     }
 
     @Test(expected = ObjectDoesNotExistException.class)
@@ -137,27 +125,7 @@ public class BoxPersistenceTest {
         target.setSize(10.0f);
 
         dao.merge(target);
-        Assert.fail();
+
+        Assert.fail("Merge should fail because Object does not exist");
     }
-
-
-
-
-    @AfterClass
-    public static void turnDown() {
-        try {
-            DatabaseService.getManager().executeSQLFile("sql/drop.sql");
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
-        }
-
-        DatabaseService.destroyService();
-        try {
-            DatabaseService.deleteDatabaseFiles();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
 }

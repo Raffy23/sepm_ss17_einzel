@@ -4,6 +4,7 @@ import sepm.ss17.e1526280.dao.ReservationPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
+import sepm.ss17.e1526280.service.exception.DataException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -98,9 +99,18 @@ public class ReservationService extends AbstractService<Reservation> implements 
 
     @Override
     public CompletableFuture<List<Reservation>> update(List<Reservation> o) {
+        LOG.debug("Update " + o);
+
         return  CompletableFuture.supplyAsync(() -> {
             persistenceDAO.merge(o);
             return o;
         });
+    }
+
+    @Override
+    public CompletableFuture<List<Reservation>> queryFor(Box box, Date start, Date end) {
+        LOG.debug("queryFor: " + box + " between " + start + " " + end);
+
+        return CompletableFuture.supplyAsync(() -> persistenceDAO.queryFor(box,start,end));
     }
 }

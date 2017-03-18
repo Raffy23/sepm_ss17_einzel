@@ -9,14 +9,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
+import sepm.ss17.e1526280.gui.components.TableComponentCell;
+import sepm.ss17.e1526280.gui.controller.wrapper.BoxUIWrapper;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.SearchDialog;
@@ -39,41 +42,8 @@ import java.util.stream.Collectors;
  */
 public class ReservationChooserController {
 
-    public static class BoxUIWrapper extends Box {
-        final CheckBox checkBox = new CheckBox("");
-        final TextField textField = new TextField();
-
-        BoxUIWrapper(Box box) {
-            super(box);
-
-            textField.setDisable(true);
-            checkBox.setOnAction(event -> textField.setDisable(!checkBox.isSelected()));
-
-            textField.disabledProperty().addListener((observableValue, aBoolean, t1) -> {
-                if( t1 ) {
-                    textField.setText("");
-                    textField.setPromptText("");
-                } else {
-                    textField.setPromptText("Geben Sie einen Namen ein");
-                }
-            });
-
-            textField.setOnKeyTyped(keyEvent -> {
-                if( textField.getStyleClass().contains("error") )
-                    textField.getStyleClass().remove("error");
-            });
-        }
-
-        //Used by JavaFX Trampoline!
-        public CheckBox getCheckedBox() {
-            return checkBox;
-        }
-
-        //Used by JavaFX Trampoline!
-        public TextField getHorseName() {
-            return textField;
-        }
-    }
+    /** Logger for logging **/
+    private static final Logger LOG = LoggerFactory.getLogger(ReservationChooserController.class);
 
     @FXML private TableView<BoxUIWrapper> boxTable;
     @FXML private TableColumn<BoxUIWrapper,Float> boxPriceCol;
@@ -92,6 +62,9 @@ public class ReservationChooserController {
     private final BoxDataService boxService = DataServiceManager.getService().getBoxDataService();
     private final ReservationDataService reservationDataService = DataServiceManager.getService().getReservationDataService();
 
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         boxPriceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
@@ -103,41 +76,15 @@ public class ReservationChooserController {
         resTabCol.setCellValueFactory(new PropertyValueFactory<>("checkedBox"));
         horseTabCol.setCellValueFactory(new PropertyValueFactory<>("horseName"));
 
-        resTabCol.setCellFactory((TableColumn<BoxUIWrapper, CheckBox> boxStringTableColumn) -> new TableCell<BoxUIWrapper, CheckBox>() {
-            @Override
-            protected void updateItem(CheckBox item, boolean empty) {
-                super.updateItem(item, empty);
+        // Set some cell Factories
+        resTabCol.setCellFactory((TableColumn<BoxUIWrapper, CheckBox> boxStringTableColumn) -> new TableComponentCell<>());
+        horseTabCol.setCellFactory((TableColumn<BoxUIWrapper, TextField> boxStringTableColumn) -> new TableComponentCell<>());
 
-                if( !empty ) {
-                    setGraphic(item);
-                    setText(null);
-                } else {
-                    setGraphic(null);
-                    setText(null);
-                }
-            }
-        });
-
-        horseTabCol.setCellFactory((TableColumn<BoxUIWrapper, TextField> boxStringTableColumn) -> new TableCell<BoxUIWrapper, TextField>() {
-            @Override
-            protected void updateItem(TextField item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if( !empty ) {
-                    setGraphic(item);
-                    setText(null);
-                } else {
-                    setGraphic(null);
-                    setText(null);
-                }
-            }
-
-
-        });
-
+        // Init Dates
         startDate.setValue(LocalDate.now());
         endDate.setValue(LocalDate.now());
 
+        // Make it so that dates can only be some logical dates
         startDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
             if( newValue.isAfter(endDate.getValue()) || newValue.isBefore(LocalDate.now()) )
                 startDate.setValue(oldValue);
@@ -152,9 +99,13 @@ public class ReservationChooserController {
                 updateData();
         });
 
+        // Query everything
         boxService.queryAll().thenAccept(this::setData).exceptionally(DialogUtil::onFatal);
     }
 
+    /**
+     * @return true if the data is valid otherwise false
+     */
     public boolean validate() {
         if ( customerName.getText().length() <= 0 ) {
             System.err.println("Customername");
@@ -234,6 +185,7 @@ public class ReservationChooserController {
     }
 
     @FXML
+    @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
     public void onCancel(ActionEvent event) {
         ((Stage) ((Button)event.getSource()).getScene().getWindow()).close();
     }
@@ -277,11 +229,13 @@ public class ReservationChooserController {
                             dataList.stream()
                                     .filter(boxUIWrapper -> boxUIWrapper.getBoxID() == box.getBoxID())
                                     .findFirst()
-                                    .ifPresent(boxUIWrapper -> {
-                                        boxUIWrapper.checkBox.setSelected(false);
-                                        boxUIWrapper.textField.setDisable(true);
-                                        boxUIWrapper.checkBox.setDisable(true);
-                                    })
+                                    .ifPresent(boxUIWrapper ->
+                                        Platform.runLater( () -> {
+                                            boxUIWrapper.checkBox.setSelected(false);
+                                            boxUIWrapper.textField.setDisable(true);
+                                            boxUIWrapper.checkBox.setDisable(true);
+                                        })
+                                    )
                         );
                     })
                     .exceptionally(DialogUtil::onError);

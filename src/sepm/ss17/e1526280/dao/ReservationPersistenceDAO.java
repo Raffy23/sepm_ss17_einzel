@@ -15,8 +15,9 @@ import java.util.List;
  */
 public interface ReservationPersistenceDAO extends PersistenceDAO<Reservation> {
 
-    String QUERY_PARAM_IS_INVOICE = "invoice";
+    String QUERY_PARAM_IS_INVOICE = "alreadyinvoice";
     String QUERY_PARAM_LIMIT = "limit";
+    String QUERY_PARAM_BOX_ID = "boxid";
 
     /**
      * Queries if the Box is reserved in between the start and end date
@@ -38,5 +39,14 @@ public interface ReservationPersistenceDAO extends PersistenceDAO<Reservation> {
      * @param o reservations which should be deleted
      */
     void merge(List<Reservation> o);
+
+    /**
+     * Searches for all Reservations for that box which are between start and end
+     * @param box box which should be searched for
+     * @param start start date
+     * @param end end date
+     * @return a list of reservations
+     */
+    List<Reservation> queryFor(Box box,Date start, Date end);
 
 }

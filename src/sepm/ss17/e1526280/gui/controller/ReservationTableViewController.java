@@ -11,6 +11,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.components.ReservationDetailCell;
 import sepm.ss17.e1526280.gui.components.ReservationDeleteCell;
@@ -35,6 +37,9 @@ import java.util.List;
  */
 public class ReservationTableViewController {
 
+    /** Logger for logging **/
+    private static final Logger LOG = LoggerFactory.getLogger(ReservationTableViewController.class);
+
     private static final SimpleDateFormat fmt = new SimpleDateFormat("dd.MM.yyyy");
     private final ReservationDataService dataService = DataServiceManager.getService().getReservationDataService();
     private final ObservableList<ReservationWrapper> dataList = FXCollections.observableList(new ArrayList<>());
@@ -50,6 +55,9 @@ public class ReservationTableViewController {
     @FXML private TableColumn<ReservationWrapper,String> endCol;
     @FXML private TableColumn<ReservationWrapper,Void> editCol;
 
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         customerCol.setCellValueFactory(new PropertyValueFactory<>("name"));

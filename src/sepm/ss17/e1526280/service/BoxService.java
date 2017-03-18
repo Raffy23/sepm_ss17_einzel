@@ -1,9 +1,11 @@
 package sepm.ss17.e1526280.service;
 
+import org.jetbrains.annotations.NotNull;
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.filesystem.ImageDAO;
 import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.service.exception.DataException;
 
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
@@ -26,8 +28,11 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
     }
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<Box> persist(Box o) {
+    public CompletableFuture<Box> persist(@NotNull Box o) {
         //TODO: make async
         final File f = imageDAO.persistImage(o.getPhoto());
         o.setPhoto(f.getName());
@@ -35,8 +40,11 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
         return super.persist(o);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<Void> remove(Box o) {
+    public CompletableFuture<Void> remove(@NotNull Box o) {
         LOG.trace("remove " + o);
 
         return CompletableFuture.supplyAsync(() -> {
@@ -50,12 +58,10 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
     }
 
     /**
-     * This function does update a Box in the Backend
-     *
-     * @param box box which should be updated
-     * @return a CompletableFuture which returns the result of the operation asynchronously
+     * {@inheritDoc}
      */
-    public CompletableFuture<Box> update(Box box) {
+    @Override
+    public CompletableFuture<Box> update(@NotNull Box box) {
         LOG.trace("update: " + box);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -93,6 +99,9 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
         box.setPhoto(blob.getName());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public File resolveImage(Box box) {
         return imageDAO.getFilePath(box.getPhoto());

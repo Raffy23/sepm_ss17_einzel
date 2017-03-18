@@ -56,6 +56,13 @@ public interface ReservationDataService extends BasicService<Reservation> {
      */
     CompletableFuture<List<Reservation>> update(List<Reservation> o);
 
-
+    /**
+     * Queries all reservations for the given box
+     * @param box of which the reservations should be queried
+     * @param start the start date
+     * @param end the end date
+     * @return a future with the list of reservations
+     */
+    CompletableFuture<List<Reservation>> queryFor(Box box, Date start, Date end);
 
 }

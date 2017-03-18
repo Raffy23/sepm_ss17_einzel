@@ -4,6 +4,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.Pane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
@@ -17,6 +19,9 @@ import java.io.IOException;
  */
 public class MainWindowController {
 
+    /** Logger for logging **/
+    private static final Logger LOG = LoggerFactory.getLogger(MainWindowController.class);
+
     private static final String BOX_FRAGMENT = GlobalSettings.FXML_ROOT+"box_tableview.fxml";
     private static final String RES_FRAGMENT = GlobalSettings.FXML_ROOT+"reservation_tableview.fxml";
     private static final String INV_FRAGMENT = GlobalSettings.FXML_ROOT+"invoice_tableview.fxml";
@@ -27,6 +32,9 @@ public class MainWindowController {
     @FXML private Tab invoiceTab;
     @FXML private Tab statisticTab;
 
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         //Init Fragments for Display:

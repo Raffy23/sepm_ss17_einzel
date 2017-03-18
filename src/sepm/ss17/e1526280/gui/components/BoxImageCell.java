@@ -8,19 +8,28 @@ import sepm.ss17.e1526280.gui.dialogs.ImageDialog;
 import sepm.ss17.e1526280.service.BoxDataService;
 
 /**
- * Created by
+ * This TableCell does draw the Image Button into the Cell and
+ * provides all the Listeners to open the Image Dialog with
+ * the Image provided by the Data of the Table Row
  *
  * @author Raphael Ludwig
  * @version 09.03.17
  */
 public class BoxImageCell extends TableCell<Box, String> {
+
+    /** Box Service is needed for the resolveImage function **/
     private final BoxDataService dataService;
+
+    /** The Button which is displayed **/
     private final Button viewImage = new Button("Bild");
 
     public BoxImageCell(BoxDataService dataService) {
         this.dataService = dataService;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
@@ -33,6 +42,7 @@ public class BoxImageCell extends TableCell<Box, String> {
 
             if (curObj.getPhoto() != null && curObj.getPhoto().length() > 0) {
                 viewImage.setOnAction((ActionEvent event) -> new ImageDialog(curObj, dataService));
+
                 setGraphic(viewImage);
                 setText(null);
             } else {

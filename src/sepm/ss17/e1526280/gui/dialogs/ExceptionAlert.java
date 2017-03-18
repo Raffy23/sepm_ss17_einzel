@@ -5,6 +5,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -17,7 +18,7 @@ import java.io.StringWriter;
  */
 public class ExceptionAlert extends Alert {
 
-    public ExceptionAlert(Throwable ex) {
+    public ExceptionAlert(@NotNull Throwable ex) {
         super(AlertType.ERROR);
 
         //Set contents of the Alert Window
@@ -49,7 +50,7 @@ public class ExceptionAlert extends Alert {
      * @param ex exception which should be printed to a String
      * @return the string which contains the stacktrace
      */
-    private static String stacktraceToString(Throwable ex) {
+    private static String stacktraceToString(@NotNull Throwable ex) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(stringWriter);
         ex.printStackTrace(printWriter);

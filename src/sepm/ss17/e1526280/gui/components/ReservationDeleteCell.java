@@ -2,9 +2,8 @@ package sepm.ss17.e1526280.gui.components;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableCell;
+import org.jetbrains.annotations.NotNull;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.ReservationDataService;
@@ -15,52 +14,63 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 /**
- * Created by
+ * This TableCell displays a delete Button and shows a Question
+ * Dialog if the Button is clicked. Also the Data is deleted if
+ * the User does select yes in the Dialog
  *
  * @author Raphael Ludwig
  * @version 14.03.17
  */
-public class ReservationDeleteCell extends TableCell<ReservationWrapper, Void> {
+public class ReservationDeleteCell extends TableButtonCell<ReservationWrapper, Void> {
 
-    private final Button deleteBtn = new Button("Löschen");
+    /** The Service for the Data changes **/
     private final ReservationDataService dataService;
+
+    /** The List of Data which can be changed **/
     private final ObservableList<ReservationWrapper> dataList;
 
+    /**
+     * @param dataService the data Service which should be used by the TableCell
+     * @param dataList a global List with all Data which is affected by the changes
+     */
     public ReservationDeleteCell(ReservationDataService dataService, ObservableList<ReservationWrapper> dataList) {
+        super("Löschen");
+
         this.dataService = dataService;
         this.dataList = dataList;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected void updateItem(Void item, boolean empty) {
-        super.updateItem(item, empty);
+    protected void onActiveItemAction(@NotNull ReservationWrapper curObj) {
+        final LocalDate date = curObj.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        if (empty) {
-            setGraphic(null);
-            setText(null);
-        } else {
-            setGraphic(deleteBtn);
-            setText(null);
+        // Disable if the Box should not be edited
+        if( LocalDate.now().isAfter(date) )
+            super.tableCellButton.setDisable(true);
 
-            final ReservationWrapper curObj = getTableView().getItems().get(getIndex());
-            final LocalDate endDate = curObj.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            if( LocalDate.now().isAfter(endDate) ) {
-                deleteBtn.setDisable(true);
-            } else {
-                deleteBtn.setOnAction(event -> {
-                    final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
-                    question.setTitle(GlobalSettings.APP_TITLE + ": " + "Bestätigung");
-                    question.setHeaderText("Löschen einer Reservierung");
-                    question.setContentText("Die Reservierung wird dauerhaft gelöscht.\nSind Sie sicher?");
-
-                    Optional<ButtonType> result = question.showAndWait();
-                    if (result.get() == ButtonType.OK) {
-                        dataService.delete(curObj.getBoxes())
-                                .thenRun(() -> dataList.remove(curObj))
-                                .exceptionally(DialogUtil::onError);
-                    }
-                });
+        // Register Button Listener
+        super.tableCellButton.setOnAction(event -> {
+            if (showQuestionDialog().orElseGet(() -> ButtonType.CANCEL) == ButtonType.OK) {
+                dataService.delete(curObj.getBoxes())
+                        .thenRun(() -> dataList.remove(curObj))
+                        .exceptionally(DialogUtil::onError);
             }
-        }
+        });
+    }
+
+    /**
+     * Shows the Question dialog if the User is sure to delete the Element
+     * @return the ButtonType from the Dialog
+     */
+    private static Optional<ButtonType> showQuestionDialog() {
+        final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
+        question.setTitle(GlobalSettings.APP_TITLE + ": " + "Bestätigung");
+        question.setHeaderText("Löschen einer Reservierung");
+        question.setContentText("Die Reservierung wird dauerhaft gelöscht.\nSind Sie sicher?");
+
+        return question.showAndWait();
     }
 }

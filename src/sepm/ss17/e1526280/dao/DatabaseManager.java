@@ -1,5 +1,6 @@
 package sepm.ss17.e1526280.dao;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
@@ -49,7 +50,7 @@ public class DatabaseManager implements Destroyable {
      * @param password the password which should be used
      * @throws CheckedDatabaseException exception is thrown if something goes wrong
      */
-    public DatabaseManager(String driver, String proto, String database, String user, String password) throws CheckedDatabaseException {
+    public DatabaseManager(@NotNull String driver,@NotNull String proto,@NotNull String database,@NotNull String user,@NotNull String password) throws CheckedDatabaseException {
         LOG.debug("A new Database Manager was created for the Database: " + database);
 
         //First check if the location exists
@@ -97,7 +98,7 @@ public class DatabaseManager implements Destroyable {
      * @param prop the Properties for the Database
      * @throws CheckedDatabaseException Is thrown if something went wrong while constructing the Database
      */
-    public DatabaseManager(Properties prop) throws CheckedDatabaseException {
+    public DatabaseManager(@NotNull Properties prop) throws CheckedDatabaseException {
         this( prop.getProperty("database.driver")
             , prop.getProperty("database.protocol")
             , prop.getProperty("database.location")
@@ -127,7 +128,7 @@ public class DatabaseManager implements Destroyable {
      * @throws IOException is thrown if the file could not be read
      * @throws SQLException os thrown if there was something wrong with the statements
      */
-    public void executeSQLFile(String file) throws IOException, SQLException {
+    public void executeSQLFile(@NotNull String file) throws IOException, SQLException {
         LOG.debug("Execute SQL-File: " + file);
         final StringBuilder sqlBuilder = new StringBuilder();
 
@@ -154,7 +155,7 @@ public class DatabaseManager implements Destroyable {
      * @param tablename the name of the table which should be checked
      * @return true if the table exists otherwise false
      */
-    public boolean probeForTable(String tablename) {
+    public boolean probeForTable(@NotNull String tablename) {
         try {
             getConnection().createStatement().executeQuery("SELECT * FROM " + tablename + " LIMIT 1");
             return true;

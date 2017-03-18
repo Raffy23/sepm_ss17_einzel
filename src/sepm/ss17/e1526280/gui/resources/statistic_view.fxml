@@ -8,44 +8,60 @@
 <?import javafx.scene.layout.*?>
 
 
-<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <VBox prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="0.0">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sepm.ss17.e1526280.gui.controller.StatisticController">
+   <top>
+      <HBox alignment="CENTER" BorderPane.alignment="CENTER">
          <children>
-            <Label text="In einem Zeitraum:">
+            <Label maxHeight="1.7976931348623157E308" text="Datum von">
+               <HBox.margin>
+                  <Insets right="5.0" />
+               </HBox.margin>
+            </Label>
+            <DatePicker fx:id="startDate" />
+            <Label maxHeight="1.7976931348623157E308" text="bis">
                <padding>
-                  <Insets bottom="5.0" />
+                  <Insets left="5.0" right="5.0" />
                </padding>
-               <font>
-                  <Font size="16.0" />
-               </font>
             </Label>
-            <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Best gebuchte Box" />
-            <Button mnemonicParsing="false" prefHeight="26.0" prefWidth="200.0" text="Schlecht gebuchte Box" />
-            <Separator prefWidth="200.0">
-               <VBox.margin>
-                  <Insets bottom="5.0" top="5.0" />
-               </VBox.margin>
-            </Separator>
-            <Label text="An bestimmten &#10;Wochentagen:">
-               <font>
-                  <Font size="16.0" />
-               </font>
-               <VBox.margin>
-                  <Insets bottom="5.0" />
-               </VBox.margin>
-            </Label>
-            <Button mnemonicParsing="false" prefWidth="200.0" text="Best gebuchte Box" />
-            <Button mnemonicParsing="false" prefWidth="200.0" text="Schlecht gebuchte Box" />
+            <DatePicker fx:id="endDate" />
          </children>
-      </VBox>
-      <BarChart layoutX="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="205.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <xAxis>
-          <CategoryAxis side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis side="LEFT" />
-        </yAxis>
-      </BarChart>
-   </children>
-</AnchorPane>
+         <padding>
+            <Insets bottom="5.0" top="5.0" />
+         </padding>
+      </HBox>
+   </top>
+   <bottom>
+      <ButtonBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <buttons>
+            <Button mnemonicParsing="false" onAction="#onGlobalStat" text="Best verkaufte Tage" />
+            <Button mnemonicParsing="false" onAction="#onChangePrice" text="Preis anpassen" />
+          <Button mnemonicParsing="false" onAction="#onReload" text="Aktualisieren" />
+        </buttons>
+         <BorderPane.margin>
+            <Insets left="5.0" right="5.0" />
+         </BorderPane.margin>
+      </ButtonBar>
+   </bottom>
+   <center>
+      <TableView fx:id="tableView" prefHeight="334.0" prefWidth="313.0" BorderPane.alignment="CENTER">
+        <columns>
+          <TableColumn fx:id="boxCol" prefWidth="75.0" text="Box" />
+          <TableColumn fx:id="resCountCol" prefWidth="105.0" text="# Buchungen" />
+            <TableColumn prefWidth="469.0" sortable="false" text="Tagestatistik">
+               <columns>
+                  <TableColumn fx:id="dayMonCol" prefWidth="40.0" resizable="false" text="Mo" />
+                  <TableColumn fx:id="dayDiCol" prefWidth="40.0" resizable="false" text="Di" />
+                  <TableColumn fx:id="dayMiCol" prefWidth="40.0" resizable="false" text="Mi" />
+                  <TableColumn fx:id="dayDoCol" prefWidth="40.0" resizable="false" text="Do" />
+                  <TableColumn fx:id="dayFrCol" prefWidth="40.0" resizable="false" text="Fr" />
+                  <TableColumn fx:id="daySaCol" prefWidth="40.0" resizable="false" text="Sa" />
+                  <TableColumn fx:id="daySoCol" prefWidth="40.0" resizable="false" text="So" />
+               </columns>
+            </TableColumn>
+            <TableColumn fx:id="graphCol" maxWidth="1.7976931348623157E308" minWidth="190.0" prefWidth="-1.0" sortable="false" text="Graph" />
+            <TableColumn fx:id="checkCol" prefWidth="45.0" sortable="false" />
+            <TableColumn fx:id="detailsCol" prefWidth="110.0" sortable="false" text="Details" />
+        </columns>
+      </TableView>
+   </center>
+</BorderPane>

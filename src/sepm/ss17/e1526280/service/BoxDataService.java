@@ -1,5 +1,6 @@
 package sepm.ss17.e1526280.service;
 
+import org.jetbrains.annotations.Nullable;
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.LitterType;
@@ -50,7 +51,7 @@ public interface BoxDataService extends BasicService<Box> {
      * @param indoor true if the box is indoor
      * @return a CompletableFuture which returns the result of the operation asynchronously
      */
-    default CompletableFuture<List<Box>> search(Float price, Float size, LitterType litterType, Boolean window, Boolean indoor) {
+    default CompletableFuture<List<Box>> search(@Nullable Float price,@Nullable Float size,@Nullable LitterType litterType,@Nullable Boolean window,@Nullable Boolean indoor) {
         //Fill search Map with the Values
         final Map<String,Object> searchData = new HashMap<String,Object>() {
             {

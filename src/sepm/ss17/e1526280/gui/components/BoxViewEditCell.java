@@ -4,9 +4,9 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
@@ -28,72 +28,70 @@ import java.io.IOException;
  * @author Raphael Ludwig
  * @version 11.03.17
  */
-public class BoxViewEditCell extends TableCell<Box, Void> {
+public class BoxViewEditCell extends TableButtonCell<Box, Void> {
 
-    /** Logger for logging ... duh **/
+    /** Logger for logging **/
     private static final Logger LOG = LoggerFactory.getLogger(BoxViewEditCell.class);
 
+    /** Box Service for data backend communication **/
     private final BoxDataService dataService;
-    private final TableView<Box> boxTable;
-    private final Button editBtn = new Button("Bearbeiten");
 
+    /** This is the element which should be refreshed after data changes **/
+    private final TableView<Box> boxTable;
+
+    /**
+     * @param dataService service which is used to persist the changes
+     * @param boxTable the table which should be refreshed if any data change occurs
+     */
     public BoxViewEditCell(BoxDataService dataService, TableView<Box> boxTable) {
+        super("Bearbeiten");
+
         this.dataService = dataService;
         this.boxTable = boxTable;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected void updateItem(Void item, boolean empty) {
-        super.updateItem(item, empty);
+    protected void onActiveItemAction(@NotNull Box curObj) {
+        super.tableCellButton.setOnAction((ActionEvent event) -> {
+            LOG.trace("Set Edit Button Action");
+            final Stage parentStage = (Stage) super.tableCellButton.getScene().getWindow();
 
-        if (empty) {
-            setGraphic(null);
-            setText(null);
-        } else {
-            final Box curObj = getTableView().getItems().get(getIndex());
+            //Open a new Dialog for the Box editing
+            try {
+                final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": " + "Box bearbeiten");
+                final BoxCreationController controller = dialog.getController();
 
-            //Set the Action Event after the Table has been rendered
-            editBtn.setOnAction((ActionEvent event) -> {
-                LOG.trace("Set Edit Button Action");
-                final Stage parentStage = (Stage) editBtn.getScene().getWindow();
+                //Init the Dialog with some Data
+                controller.init(curObj);
+                //Set the Listener in the Dialog
+                controller.setOkBtnEventHandler(event1 -> {
+                    LOG.debug("Update Box " + curObj + " with Dialog Data");
 
-                //Open a new Dialog for the Box editing
-                try {
-                    final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": " + "Box bearbeiten");
-                    final BoxCreationController controller = dialog.getController();
+                    //Check for Input validation
+                    if (!controller.validateInput()) {
+                        LOG.info("Input validation failed");
+                        return;
+                    }
 
-                    //Init the Dialog with some Data
-                    controller.init(curObj);
-                    //Set the Listener in the Dialog
-                    controller.setOkBtnEventHandler(event1 -> {
-                        LOG.debug("Update Box " + curObj + " with Dialog Data");
+                    //Update the Data in the Box and Backend
+                    curObj.updateDataFrom(controller.generateBox());
+                    dataService.update(curObj)
+                            .thenAccept(box -> Platform.runLater(boxTable::refresh))
+                            .exceptionally(BoxViewEditCell::onError);
 
-                        //Check for Input validation
-                        if (!controller.validateInput()) {
-                            LOG.info("Input validation failed");
-                            return;
-                        }
+                    final Button btn = (Button) event1.getSource();
+                    ((Stage) btn.getScene().getWindow()).close();
+                });
 
-                        //Update the Data in the Box and Backend
-                        curObj.updateDataFrom(controller.generateBox());
-                        dataService.update(curObj)
-                                .thenAccept(box -> Platform.runLater(boxTable::refresh))
-                                .exceptionally(BoxViewEditCell::onError);
-
-                        final Button btn = (Button) event1.getSource();
-                        ((Stage) btn.getScene().getWindow()).close();
-                    });
-
-                    dialog.show();
-                } catch (IOException e) {
-                    System.err.println("Fatal: Unable to create BoxDetailDialog!");
-                    DialogUtil.onFatal(e);
-                }
-            });
-
-            setGraphic(editBtn);
-            setText(null);
-        }
+                dialog.show();
+            } catch (IOException e) {
+                System.err.println("Fatal: Unable to create BoxDetailDialog!");
+                DialogUtil.onFatal(e);
+            }
+        });
     }
 
     /**
@@ -101,7 +99,7 @@ public class BoxViewEditCell extends TableCell<Box, Void> {
      * @param err exception which was thrown
      * @return null
      */
-    private static Void onError(Throwable err) {
+    private static Void onError(@NotNull Throwable err) {
         Alert alert = new ExceptionAlert(err);
         alert.setTitle("Error: " + GlobalSettings.APP_TITLE);
         alert.setHeaderText("Box konnte nicht bearbeitet werden!");

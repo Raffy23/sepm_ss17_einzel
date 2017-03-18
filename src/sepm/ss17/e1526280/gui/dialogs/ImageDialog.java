@@ -34,8 +34,6 @@ public class ImageDialog {
         pane.setCenter(imageView);
 
         imageView.setImage(img);
-        imageView.setFitHeight(800);
-        imageView.setFitWidth(640);
 
         stage.setScene(scene);
         stage.showAndWait();

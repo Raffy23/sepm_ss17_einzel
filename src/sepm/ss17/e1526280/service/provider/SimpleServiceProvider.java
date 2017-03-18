@@ -14,11 +14,17 @@ import sepm.ss17.e1526280.util.datasource.DataSource;
  */
 public class SimpleServiceProvider implements ServiceProvider {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public BoxService getBoxService(DataSource dataSource) {
         return new BoxService(dataSource.getBoxDAO(), dataSource.getImageDAO());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ReservationService getReservationService(DataSource dataSource) {
         return new ReservationService(dataSource.getReservationDAO());

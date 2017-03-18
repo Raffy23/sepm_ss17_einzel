@@ -21,6 +21,15 @@ public abstract class CustomDialog<T> {
     protected Scene scene;
     protected T controller;
 
+    /**
+     * Creates the Basic Dialog with the title and the fxml
+     * The IOException from the FXMLLoader is automatically caught and
+     * the DialogUtil.onFatal function is invoked
+     *
+     * @param owner the owner stage of the Dialog
+     * @param title the title of the Dialog
+     * @param fxml the fxml path of the dialog content
+     */
     protected CustomDialog(Stage owner, String title, String fxml) {
         final FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
 

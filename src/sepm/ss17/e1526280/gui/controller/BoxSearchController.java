@@ -35,6 +35,9 @@ public class BoxSearchController {
     @FXML private ComboBox<TriStateBoolean> indoorBox;
     @FXML private Button searchBtn;
 
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         LOG.trace("initialize");
@@ -83,7 +86,7 @@ public class BoxSearchController {
     }
 
     @FXML
-    public void onCancel(ActionEvent event) {
+    public static void onCancel(ActionEvent event) {
         final Button source = (Button) event.getSource();
         ((Stage)source.getScene().getWindow()).close();
     }

@@ -3,8 +3,9 @@ package sepm.ss17.e1526280.gui.components;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.gui.controller.ReservationEditController;
 import sepm.ss17.e1526280.gui.controller.ReservationTableViewController;
@@ -12,6 +13,7 @@ import sepm.ss17.e1526280.gui.controller.wrapper.ReservationEntryWrapper;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
+import sepm.ss17.e1526280.gui.dialogs.ReservationEditDialog;
 import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
@@ -22,97 +24,111 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by
+ * This TableCell does Show a Edit button in the Cell, if clicked
+ * the ReservationDetailDialog is created and the Details of the
+ * Reservation can be changed
  *
  * @author Raphael Ludwig
  * @version 14.03.17
  */
-public class ReservationEditCell extends TableCell<ReservationWrapper, Void> {
-    private final Button editBtn = new Button("Bearbeiten");
+public class ReservationEditCell extends TableButtonCell<ReservationWrapper, Void> {
 
     private final ReservationDataService dataService;
     private final ReservationTableViewController controller;
 
     public ReservationEditCell(ReservationDataService dataService, ReservationTableViewController controller) {
+        super("Bearbeiten");
+
         this.dataService = dataService;
         this.controller = controller;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected void updateItem(Void item, boolean empty) {
-        super.updateItem(item, empty);
+    protected void onActiveItemAction(@NotNull ReservationWrapper curObj) {
+        final LocalDate date = curObj.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        if (empty) {
-            setGraphic(null);
-            setText(null);
-        } else {
-            setGraphic(editBtn);
-            setText(null);
+        // Disable if the Element should not be edited
+        if( LocalDate.now().isAfter(date) )     super.tableCellButton.setDisable(true);
+        else                                    super.tableCellButton.setDisable(false);
 
-            final ReservationWrapper curObj = getTableView().getItems().get(getIndex());
-            final LocalDate endDate = curObj.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            if( LocalDate.now().isAfter(endDate) ) {
-                editBtn.setDisable(true);
-                return;
-            }
+        super.tableCellButton.setOnAction(event -> {
+            final Stage parentStage = (Stage) ((Button) event.getSource()).getScene().getWindow();
+            final CustomDialog<ReservationEditController> dialog = new ReservationEditDialog(parentStage);
+            final ReservationEditController controller = dialog.getController();
 
-            editBtn.setOnAction(event -> {
-                final Stage parentStage = (Stage) ((Button) event.getSource()).getScene().getWindow();
-                final String fxml = GlobalSettings.FXML_ROOT + "/" + "reservation_editview.fxml";
+            // Initialize controller with Data
+            controller.init(curObj);
+            controller.setOkBtnEventHandler(event1 -> {
 
-                final CustomDialog<ReservationEditController> dialog = new CustomDialog<ReservationEditController>(parentStage, GlobalSettings.APP_TITLE + " Reservierung bearbeiten", fxml) {};
-                final ReservationEditController controller = dialog.getController();
-
-                controller.init(curObj);
-                controller.setOkBtnEventHandler(event1 -> {
-                    try {
-                        if (!controller.validate()) {
-                            Alert warning = new Alert(Alert.AlertType.WARNING);
-                            warning.setTitle(GlobalSettings.APP_TITLE+": Warnung");
-                            warning.setHeaderText("Achtung: Es konnte keine Änderungen übernommen werden!");
-                            warning.setContentText("Es ist ein Validierungsfehler ausgetreten,\ndeswegen konnten keine Änderungen übernommen werden.\nBitte überprüfen Sie die eingegeben Daten und versuchen es erneut.");
-                            warning.show();
-
-                            return;
-                        }
-                    } catch( Exception e ) {
-                        DialogUtil.onError(e);
+                // The validate Function of the Controller is not safe to
+                // call without catching any RuntimeException since it uses
+                // Future.join() which does throw a Exception and can potentially
+                // crash the Application in a non-safe way
+                try {
+                    if (!controller.validate()) {
+                        showDialog();
                         return;
                     }
+                } catch( RuntimeException e ) {
+                    DialogUtil.onError(e);
+                    return;
+                }
 
-                    final List<Reservation> deleteData = controller.getToDelete().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
-                    final List<Reservation> updateData = controller.getToUpdate().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
+                // Convert the lists to the right type
+                final List<Reservation> deleteData = controller.getToDelete().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
+                final List<Reservation> updateData = controller.getToUpdate().stream().map(ReservationEntryWrapper::toReservation).collect(Collectors.toList());
 
-                    final String name = controller.getName();
-                    final Date start = controller.getStartDate();
-                    final Date end = controller.getEndDate();
+                // Extract data from the dialog
+                final String name = controller.getName();
+                final Date start = controller.getStartDate();
+                final Date end = controller.getEndDate();
 
-                    dataService.delete(deleteData)
-                                .thenRun(() -> {
-                                    updateData.forEach(reservation -> {
-                                        reservation.setCustomer(name);
-                                        reservation.setStart(start);
-                                        reservation.setEnd(end);
-                                    });
+                // Do some Service stuff
+                dataService.delete(deleteData)
+                        .thenRun(() -> {
+                            updateData.forEach(reservation -> {
+                                reservation.setCustomer(name);
+                                reservation.setStart(start);
+                                reservation.setEnd(end);
+                            });
 
-                                    dataService.update(updateData).join();
-                                    this.controller.loadData();
-                                })
-                                .exceptionally(this::onError);
+                            dataService.update(updateData).join();
+                            this.controller.loadData();
+                        })
+                        .exceptionally(this::onError);
 
-                    final Button btn = (Button) event1.getSource();
-                    ((Stage) btn.getScene().getWindow()).close();
-                });
-
-                dialog.show();
+                final Button btn = (Button) event1.getSource();
+                ((Stage) btn.getScene().getWindow()).close();
             });
-        }
+
+            dialog.show();
+        });
     }
 
-    private Void onError(Throwable err) {
+    /**
+     * Refreshes the Data and calls the DialogUtil.onError Method
+     * @param err throwable which caused the error
+     * @return null
+     */
+    @Nullable
+    private Void onError(@NotNull Throwable err) {
         Platform.runLater(this.controller::loadData);
         Platform.runLater(() -> DialogUtil.onError(err));
 
         return null;
+    }
+
+    /**
+     * Shows the Warning Dialog if the Dialog Controller fails to validate the Data
+     */
+    private static void showDialog() {
+        Alert warning = new Alert(Alert.AlertType.WARNING);
+        warning.setTitle(GlobalSettings.APP_TITLE+": Warnung");
+        warning.setHeaderText("Achtung: Es konnte keine Änderungen übernommen werden!");
+        warning.setContentText("Es ist ein Validierungsfehler ausgetreten,\ndeswegen konnten keine Änderungen übernommen werden.\nBitte überprüfen Sie die eingegeben Daten und versuchen es erneut.");
+        warning.show();
     }
 }

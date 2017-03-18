@@ -1,6 +1,5 @@
 package sepm.ss17.e1526280.gui.controller;
 
-import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -31,7 +30,7 @@ import java.text.ParseException;
  */
 public class BoxCreationController {
 
-    /** Logger for logging ... duh **/
+    /** Logger for logging **/
     private static final Logger LOG = LoggerFactory.getLogger(BoxCreationController.class);
 
     /** This Number Format Instance is used to validate the TextInput Fields **/
@@ -44,18 +43,14 @@ public class BoxCreationController {
     @FXML private CheckBox windowChecker;
     @FXML private CheckBox indoorChecker;
     @FXML private TextField imagePathTextField;
-    @FXML private Button fileChooserBtn;
     @FXML private Button okBtn;
 
     //File Data for the Photo
     private File photo;
 
-    /** Focus change listener for the Text validate **/
-    private final ChangeListener<Boolean> onFocusLeaveValidator = (observableValue, aBoolean, t1) -> {
-        if( !t1 )
-            validateInput();
-    };
-
+    /**
+     * Initializes all the Data which is needed by the Controller
+     */
     @FXML
     public void initialize() {
         LOG.trace("initialize");
@@ -90,7 +85,9 @@ public class BoxCreationController {
         //validateInput();
     }
 
+
     @FXML
+    @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
     public void onCancle(ActionEvent event) {
         LOG.debug("on Cancel Event received");
 

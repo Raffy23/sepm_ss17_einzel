@@ -2,9 +2,8 @@ package sepm.ss17.e1526280.gui.components;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TableCell;
+import org.jetbrains.annotations.NotNull;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.BoxDataService;
@@ -12,43 +11,44 @@ import sepm.ss17.e1526280.service.BoxDataService;
 import java.util.Optional;
 
 /**
- * Created by
+ * A TableCell which does render the Delete Button in the Box View
+ * This class also provides the Confirmation Dialog and the action
+ * listeners for the actual removal of the Element in the DataSource
+ * and the Observable list
  *
  * @author Raphael Ludwig
  * @version 09.03.17
  */
-public class BoxDeleteCell extends TableCell<Box, Void> {
+public class BoxDeleteCell extends TableButtonCell<Box, Void> {
 
+    /**
+     * Backend service for permanent deletion
+     */
     private final BoxDataService dataService;
+
+    /**
+     * List of the Data in the fronted
+     */
     private final ObservableList<Box> boxObservableList;
-    private final Button deleteBtn = new Button("Löschen");
 
     public BoxDeleteCell(BoxDataService dataService, ObservableList<Box> boxObservableList) {
+        super("Löschen");
         this.dataService = dataService;
         this.boxObservableList = boxObservableList;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    protected void updateItem(Void item, boolean empty) {
-        super.updateItem(item, empty);
-
-        if (empty) {
-            setGraphic(null);
-            setText(null);
-        } else {
-            setGraphic(deleteBtn);
-            setText(null);
-
-            final Box curObj = getTableView().getItems().get(getIndex());
-
-            deleteBtn.setOnAction(event -> {
-                if (askForDeletion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
-                    dataService.remove(curObj)
-                               .thenRun(() -> boxObservableList.remove(curObj))
-                               .exceptionally(DialogUtil::onError);
-                }
-            });
-        }
+    protected void onActiveItemAction(@NotNull Box box) {
+        super.tableCellButton.setOnAction(event -> {
+            if (askForDeletion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
+                dataService.remove(box)
+                        .thenRun(() -> boxObservableList.remove(box))
+                        .exceptionally(DialogUtil::onError);
+            }
+        });
     }
 
     /**

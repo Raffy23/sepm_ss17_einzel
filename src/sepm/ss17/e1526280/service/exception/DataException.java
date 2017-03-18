@@ -1,4 +1,4 @@
-package sepm.ss17.e1526280.service;
+package sepm.ss17.e1526280.service.exception;
 
 /**
  * A Exception which is thrown by the DataServices if something goes wrong

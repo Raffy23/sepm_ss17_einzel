@@ -1,10 +1,12 @@
 package sepm.ss17.e1526280.service;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.PersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesAlreadyExistException;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
+import sepm.ss17.e1526280.service.exception.DataException;
 
 import java.util.List;
 import java.util.Map;
@@ -23,22 +25,36 @@ public abstract class AbstractService<T> implements BasicService<T> {
      * Logger for logging ... duh
      **/
     protected final Logger LOG;
+
+    /**
+     * The persistence backend which should be used
+     */
     protected final PersistenceDAO<T> dao;
 
 
+    /**
+     * {@inheritDoc}
+     */
     public AbstractService(PersistenceDAO<T> dao, Class<?> loggerClass) {
         this.dao = dao;
         LOG = LoggerFactory.getLogger(loggerClass);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<List<T>> query(Map<String, Object> param) {
+    public CompletableFuture<List<T>> query(@NotNull Map<String, Object> param) {
         LOG.debug("query " + param);
         return CompletableFuture.supplyAsync(() -> dao.query(param));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<List<T>> persist(List<T> o) {
+    @SuppressWarnings("Duplicates") //Since its a List an the other one is a Object is must be a duplicate
+    public CompletableFuture<List<T>> persist(@NotNull List<T> o) {
         LOG.debug("persist " + o);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -51,8 +67,12 @@ public abstract class AbstractService<T> implements BasicService<T> {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<T> persist(T o) {
+    @SuppressWarnings("Duplicates")  //Since its a List an the other one is a Object is must be a duplicate
+    public CompletableFuture<T> persist(@NotNull T o) {
         LOG.debug("persist " + o);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -65,8 +85,11 @@ public abstract class AbstractService<T> implements BasicService<T> {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<T> update(T o) {
+    public CompletableFuture<T> update(@NotNull T o) {
         LOG.debug("update " + o);
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -79,8 +102,11 @@ public abstract class AbstractService<T> implements BasicService<T> {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public CompletableFuture<Void> remove(T o) {
+    public CompletableFuture<Void> remove(@NotNull T o) {
         LOG.debug("remove " + o);
         return CompletableFuture.supplyAsync(() -> {
             try {

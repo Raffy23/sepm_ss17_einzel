@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.service.ReservationDataService;
+import sepm.ss17.e1526280.service.StatisticService;
+import sepm.ss17.e1526280.service.StatisticalService;
 import sepm.ss17.e1526280.service.provider.ServiceProvider;
 import sepm.ss17.e1526280.util.datasource.DataSource;
 
@@ -30,6 +32,8 @@ public class DataServiceManager {
     /** Reservation Service from the Provider **/
     private final ReservationDataService reservationDataService;
 
+    private final StatisticalService statisticalService;
+
 
     /**
      * Private Constructor for the Singleton which creates all the stuff we need
@@ -39,6 +43,8 @@ public class DataServiceManager {
     private DataServiceManager(DataSource source,ServiceProvider serviceProvider) {
        boxDataService = serviceProvider.getBoxService(source);
        reservationDataService = serviceProvider.getReservationService(source);
+
+       statisticalService = new StatisticService(reservationDataService);
     }
 
     /**
@@ -73,4 +79,10 @@ public class DataServiceManager {
         return reservationDataService;
     }
 
+    /**
+     * @return the service for the statistics
+     */
+    public StatisticalService getStatisticalService() {
+        return statisticalService;
+    }
 }

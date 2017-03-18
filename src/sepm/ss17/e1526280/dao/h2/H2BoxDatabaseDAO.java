@@ -1,5 +1,6 @@
 package sepm.ss17.e1526280.dao.h2;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
@@ -15,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +69,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * Closes all Resources which are held by this DAO
      */
     @Override
+    @SuppressWarnings("Duplicates")
     public synchronized void destroy() {
         LOG.trace("destroy");
 
@@ -89,40 +92,29 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @return a List of all found Elements
      */
     @Override
-    public synchronized List<Box> query(Map<String, Object> t) {
+    public synchronized List<Box> query(@NotNull Map<String, Object> t) {
         final List<Box> data = new ArrayList<>();
         final StringBuilder rawStatement = new StringBuilder();
-        rawStatement.append("SELECT * FROM Box");
+        final Map<String,Integer> order = new HashMap<>();
 
         //Build SQL-String for the prepared Statement
-        if(!t.isEmpty() ) {
-            rawStatement.append(" WHERE ");
-
-            if (t.containsKey(QUERY_PARAM_BOX_ID)) rawStatement.append(" boxid=?");
-            if (t.containsKey(QUERY_PARAM_PRICE)) rawStatement.append(" price=?");
-            if (t.containsKey(QUERY_PARAM_SIZE)) rawStatement.append(" size=?");
-            if (t.containsKey(QUERY_PARAM_LITTER)) rawStatement.append(" litter=?");
-            if (t.containsKey(QUERY_PARAM_WINDOW)) rawStatement.append(" window=?");
-            if (t.containsKey(QUERY_PARAM_INDOOR)) rawStatement.append(" indoor=?");
-            if (t.containsKey(QUERY_PARAM_DELFLAG)) rawStatement.append(" deleted=?");
-
-            if (t.containsKey(QUERY_PARAM_LIMIT)) rawStatement.append(" LIMIT ").append(t.get(QUERY_PARAM_LIMIT));
-        }
+        rawStatement.append( generateQueryStatement("*",t,order) );
+        if (t.containsKey(QUERY_PARAM_LIMIT)) rawStatement.append(" LIMIT ").append(t.get(QUERY_PARAM_LIMIT));
 
         try {
             final PreparedStatement s = getConnection().prepareStatement(rawStatement.toString());
-            LOG.debug("Query:\t"+s + " with data " + t);
-            int position = 1;
+            LOG.debug("Query:\t"+rawStatement + " with data " + t);
 
             //Fill the Data into the Statement
             if( !t.isEmpty() ) {
-                if (t.containsKey(QUERY_PARAM_BOX_ID)) s.setInt(position++, (Integer) t.get(QUERY_PARAM_BOX_ID));
-                if (t.containsKey(QUERY_PARAM_PRICE)) s.setFloat(position++, (Float) t.get(QUERY_PARAM_PRICE));
-                if (t.containsKey(QUERY_PARAM_SIZE)) s.setFloat(position++, (Float) t.get(QUERY_PARAM_SIZE));
-                if (t.containsKey(QUERY_PARAM_LITTER)) s.setString(position++, ((LitterType) t.get(QUERY_PARAM_LITTER)).name());
-                if (t.containsKey(QUERY_PARAM_WINDOW)) s.setBoolean(position++, (Boolean) t.get(QUERY_PARAM_WINDOW));
-                if (t.containsKey(QUERY_PARAM_INDOOR)) s.setBoolean(position++, (Boolean) t.get(QUERY_PARAM_INDOOR));
-                if (t.containsKey(QUERY_PARAM_DELFLAG)) s.setBoolean(position, (Boolean) t.get(QUERY_PARAM_DELFLAG));
+
+                if (t.containsKey(QUERY_PARAM_BOX_ID)) s.setInt(order.get(QUERY_PARAM_BOX_ID), (Integer) t.get(QUERY_PARAM_BOX_ID));
+                if (t.containsKey(QUERY_PARAM_PRICE)) s.setFloat(order.get(QUERY_PARAM_PRICE), (Float) t.get(QUERY_PARAM_PRICE));
+                if (t.containsKey(QUERY_PARAM_SIZE)) s.setFloat(order.get(QUERY_PARAM_SIZE), (Float) t.get(QUERY_PARAM_SIZE));
+                if (t.containsKey(QUERY_PARAM_LITTER)) s.setString(order.get(QUERY_PARAM_LITTER), ((LitterType) t.get(QUERY_PARAM_LITTER)).name());
+                if (t.containsKey(QUERY_PARAM_WINDOW)) s.setBoolean(order.get(QUERY_PARAM_WINDOW), (Boolean) t.get(QUERY_PARAM_WINDOW));
+                if (t.containsKey(QUERY_PARAM_INDOOR)) s.setBoolean(order.get(QUERY_PARAM_INDOOR), (Boolean) t.get(QUERY_PARAM_INDOOR));
+                if (t.containsKey(QUERY_PARAM_DELFLAG)) s.setBoolean(order.get(QUERY_PARAM_DELFLAG), (Boolean) t.get(QUERY_PARAM_DELFLAG));
             }
 
             //Finally execute Query
@@ -152,7 +144,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @throws ObjectDoesAlreadyExistException thrown if the object already exists
      */
     @Override
-    public synchronized void persist(Box object) throws ObjectDoesAlreadyExistException {
+    public synchronized void persist(@NotNull Box object) throws ObjectDoesAlreadyExistException {
         LOG.trace("Persist:\t"+object);
 
         try {
@@ -211,7 +203,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @throws ObjectDoesNotExistException thrown if the Object does not exist in the Database
      */
     @Override
-    public synchronized void merge(Box object) throws ObjectDoesNotExistException {
+    public synchronized void merge(@NotNull Box object) throws ObjectDoesNotExistException {
         LOG.debug("Merge\t" + object);
 
         try {
@@ -237,7 +229,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      * @param object object which should be removed
      */
     @Override
-    public synchronized void remove(Box object) throws ObjectDoesNotExistException {
+    public synchronized void remove(@NotNull Box object) throws ObjectDoesNotExistException {
         LOG.debug("Remove\t" + object);
 
         try {
