@@ -24,7 +24,6 @@ import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.util.DataServiceManager;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,34 +115,28 @@ public class BoxTableViewController {
         final Button source = (Button) event.getSource();
         final Stage parentStage = (Stage) source.getScene().getWindow();
 
-        try {
-            //Create new Dialog for the Box creation
-            final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": Neue Box anlegen");
-            final BoxCreationController controller = dialog.getController();
+        //Create new Dialog for the Box creation
+        final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": Neue Box anlegen");
+        final BoxCreationController controller = dialog.getController();
 
-            //register button handler to dialog
-            controller.setOkBtnEventHandler(event1 -> {
-                if( !controller.validateInput() ) {
-                    LOG.info("Input validation failed");
-                    return;
-                }
+        //register button handler to dialog
+        controller.setOkBtnEventHandler(event1 -> {
+            if( !controller.validateInput() ) {
+                LOG.info("Input validation failed");
+                return;
+            }
 
-                //persist data from the dialog
-                boxDataService.persist(controller.generateBox())
-                        .thenAccept(this::addData)
-                        .exceptionally(DialogUtil::onError);
+            //persist data from the dialog
+            boxDataService.persist(controller.generateBox())
+                    .thenAccept(this::addData)
+                    .exceptionally(DialogUtil::onError);
 
-                //close it
-                final Button btn = (Button) event1.getSource();
-                ((Stage)btn.getScene().getWindow()).close();
-            });
+            //close it
+            final Button btn = (Button) event1.getSource();
+            ((Stage)btn.getScene().getWindow()).close();
+        });
 
-            dialog.show();
-        } catch (IOException e) {
-            LOG.error("Unable to create BoxDetailDialog!");
-            DialogUtil.onFatal(e);
-        }
-
+        dialog.show();
     }
 
     /**

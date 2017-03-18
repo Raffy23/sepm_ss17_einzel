@@ -27,7 +27,7 @@ public class GlobalSettings {
     private static final Properties config = new Properties();
 
     /** The Path where every FXML Document is saved **/
-    public static String FXML_ROOT = "/sepm/ss17/e1526280/gui/resources/";
+    public static final String FXML_ROOT = "/sepm/ss17/e1526280/gui/resources/";
 
     /** The Title for the JavaFX Window **/
     public static final String APP_TITLE = "Wendy's Pferdepension";

@@ -5,5 +5,3 @@ JavaDoc
 database.mv.db
 database.trace.db
 *.iml
-*.svg
-vcs.xml

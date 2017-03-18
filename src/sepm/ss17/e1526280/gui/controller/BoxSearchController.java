@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.LitterType;
@@ -47,7 +48,10 @@ public class BoxSearchController {
         indoorBox.getItems().addAll(TriStateBoolean.False,TriStateBoolean.True,TriStateBoolean.Ignore);
     }
 
-    public Float getPrice() {
+    /**
+     * @return the parsed price, might be null if value couldn't be parsed
+     */
+    public @Nullable Float getPrice() {
         try {
             return fmt.parse(priceTextField.getText()).floatValue();
         } catch (ParseException e) {
@@ -55,7 +59,10 @@ public class BoxSearchController {
         }
     }
 
-    public Float getSize() {
+    /**
+     * @return the parsed size value, might be null if value couldn't be parsed
+     */
+    public @Nullable Float getSize() {
         try {
             return fmt.parse(sizeTextField.getText()).floatValue();
         } catch (ParseException e) {
@@ -63,30 +70,46 @@ public class BoxSearchController {
         }
     }
 
-    public LitterType getLitter() {
+    /**
+     * @return the Litter type, might be null if user didn't choose one
+     */
+    public @Nullable LitterType getLitter() {
         return litterComboBox.getValue();
     }
 
-    public Boolean hasWindow() {
+    /**
+     * @return true if the user has selected the window property otherwise false. If the user did
+     *          not select anything null is returned
+     */
+    public @Nullable Boolean hasWindow() {
         if( windowBox.getValue() == null || windowBox.getValue() == TriStateBoolean.Ignore )
             return null;
 
         return windowBox.getValue() == TriStateBoolean.True;
     }
 
-    public Boolean isIndoor() {
+    /**
+     * @return true if the user has selected the indoor property otherwise false. If the user did
+     *          not select anything null is returned
+     */
+    public @Nullable Boolean isIndoor() {
         if( indoorBox.getValue() == null || indoorBox.getValue() == TriStateBoolean.Ignore )
             return null;
 
         return indoorBox.getValue() == TriStateBoolean.True;
     }
 
+    /**
+     * Sets the Search Button action Listener
+     * @param handler listener which should listen to button changes
+     */
     public void setSearchActionListener(EventHandler<ActionEvent> handler) {
         searchBtn.setOnAction(handler);
     }
 
     @FXML
-    public static void onCancel(ActionEvent event) {
+    @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
+    public void onCancel(ActionEvent event) {
         final Button source = (Button) event.getSource();
         ((Stage)source.getScene().getWindow()).close();
     }

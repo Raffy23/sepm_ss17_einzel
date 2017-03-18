@@ -107,15 +107,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             final ResultSet rs = s.executeQuery();
             while( rs.next() ) {
                 final Box box = boxDAO.query(rs.getInt(2));
-                data.add( new Reservation(rs.getInt(1)
-                        , box
-                        , new java.util.Date(rs.getDate(3).getTime())
-                        , new java.util.Date(rs.getDate(4).getTime())
-                        , rs.getString(5)
-                        , rs.getString(6)
-                        , rs.getFloat(7)
-                        , rs.getBoolean(8))
-                );
+                data.add( resultSetToReservation(rs, box) );
             }
 
             s.close();
@@ -339,14 +331,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             final ResultSet rs = reserved.executeQuery();
 
             while( rs.next() ) {
-                result.add( new Reservation(rs.getInt(1)
-                        , box
-                        , new java.util.Date(rs.getDate(3).getTime())
-                        , new java.util.Date(rs.getDate(4).getTime())
-                        , rs.getString(5)
-                        , rs.getString(6)
-                        , rs.getFloat(7)
-                        , rs.getBoolean(8)));
+                result.add( resultSetToReservation(rs, box) );
             }
 
         } catch (SQLException e) {
@@ -354,5 +339,16 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         }
 
         return result;
+    }
+
+    private static Reservation resultSetToReservation(ResultSet rs, Box box) throws SQLException {
+        return new Reservation(rs.getInt(1)
+                , box
+                , new java.util.Date(rs.getDate(3).getTime())
+                , new java.util.Date(rs.getDate(4).getTime())
+                , rs.getString(5)
+                , rs.getString(6)
+                , rs.getFloat(7)
+                , rs.getBoolean(8));
     }
 }

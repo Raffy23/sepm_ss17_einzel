@@ -67,24 +67,24 @@ public abstract class AbstractBoxPersistenceTest {
         Assert.assertEquals(box,target);
     }
 
-    @Test
-    public void persistMultiple() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+    private List<Box> generateBoxes(int count) {
         final List<Box> boxes = new ArrayList<>();
         final Random rand = ThreadLocalRandom.current();
-        for(int i=0; i<=10; i++) {
+        for(int i=0; i<=count; i++) {
             boxes.add(new Box(rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
         }
 
-        dao.persist(boxes);
+        return boxes;
+    }
+
+    @Test
+    public void persistMultiple() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+        dao.persist(generateBoxes(10));
     }
 
     @Test(expected = ObjectDoesAlreadyExistException.class)
     public void persistMultipleFail() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
-        final List<Box> boxes = new ArrayList<>();
-        final Random rand = ThreadLocalRandom.current();
-        for(int i=0; i<=10; i++) {
-            boxes.add(new Box(rand.nextFloat(),rand.nextFloat(), LitterType.Sawdust,rand.nextBoolean(),rand.nextBoolean(),null));
-        }
+        final List<Box> boxes = generateBoxes(10);
 
         dao.persist(boxes);
         dao.persist(boxes);
