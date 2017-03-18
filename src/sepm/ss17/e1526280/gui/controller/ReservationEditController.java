@@ -4,11 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -18,18 +15,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.Reservation;
+import sepm.ss17.e1526280.gui.components.ReservationEntryDeleteCell;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationEntryWrapper;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 import sepm.ss17.e1526280.service.ReservationDataService;
+import sepm.ss17.e1526280.service.exception.DataException;
 import sepm.ss17.e1526280.util.DataServiceManager;
-import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -61,55 +58,32 @@ public class ReservationEditController {
      */
     @FXML
     public void initialize() {
+        LOG.trace("initialize");
+
         boxCol.setCellValueFactory(new PropertyValueFactory<>("boxId"));
         horseCol.setCellValueFactory(new PropertyValueFactory<>("horse"));
         priceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
         delCol.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
 
-        delCol.setCellFactory((TableColumn<ReservationEntryWrapper, Void> boxStringTableColumn) -> new TableCell<ReservationEntryWrapper, Void>() {
-            final Button deleteBtn = new Button("Löschen");
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (empty) {
-                    setGraphic(null);
-                    setText(null);
-                } else {
-                    setGraphic(deleteBtn);
-                    setText(null);
-
-                    final ReservationEntryWrapper curObj = getTableView().getItems().get(getIndex());
-
-                    deleteBtn.setOnAction(event -> {
-                        final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
-                        question.setTitle(GlobalSettings.APP_TITLE +": " + "Bestätigung");
-                        question.setHeaderText("Reservierung Löschen");
-                        question.setContentText("Soll dieser teil der Reservierung gelöscht werden?");
-
-                        Optional<ButtonType> result = question.showAndWait();
-                        if (result.get() == ButtonType.OK) {
-                            toDelete.add(curObj);
-                            resTable.getItems().remove(curObj);
-                            resTable.refresh();
-                        }
-                    });
-                }
-            }
-        });
+        delCol.setCellFactory((TableColumn<ReservationEntryWrapper, Void> boxStringTableColumn) -> new ReservationEntryDeleteCell(toDelete, resTable));
     }
 
+    /**
+     * Lazy initializes the Controller with the Data
+     * @param wrapper data for the initialization
+     */
     public void init(ReservationWrapper wrapper) {
+        LOG.debug("Init with data: " + wrapper);
+
         final List<ReservationEntryWrapper> convData = new ArrayList<>();
         wrapper.getBoxes().forEach(reservation -> convData.add(new ReservationEntryWrapper(reservation,wrapper.getDays())));
         this.coreData = wrapper;
-
 
         customer.setText(wrapper.getName());
         startDate.setValue(wrapper.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         endDate.setValue(wrapper.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
 
+        // Set Data to GUI
         resTable.setItems(FXCollections.observableArrayList(convData));
 
         //Validators:
@@ -128,7 +102,9 @@ public class ReservationEditController {
      * This Method might trow a RuntimeException received from the Future in the Service
      * @return true if the data is valid otherwise false
      */
-    public boolean validate() {
+    public boolean validate() throws DataException {
+        LOG.trace("Validate Input");
+
         if( customer.getText().length() <= 0 )
             return false;
 
@@ -151,6 +127,7 @@ public class ReservationEditController {
                 break;
         }
 
+        LOG.trace("\tResult => " + noOverlap);
         return noOverlap;
     }
 
@@ -161,6 +138,7 @@ public class ReservationEditController {
     @FXML
     @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
     public void onClose(ActionEvent event) {
+        LOG.trace("onClose");
         ((Stage) ((Button)event.getSource()).getScene().getWindow()).close();
     }
 
