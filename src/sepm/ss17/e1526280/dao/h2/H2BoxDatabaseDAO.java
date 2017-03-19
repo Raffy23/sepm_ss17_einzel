@@ -158,7 +158,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
                 //Throw if there is one there
                 if( result.next() ) {
                     result.close();
-                    throw new ObjectDoesAlreadyExistException();
+                    throw new ObjectDoesAlreadyExistException(new RuntimeException("There is already a Box with that ID!"));
                 }
 
                 result.close();
@@ -180,7 +180,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
 
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ObjectDoesAlreadyExistException();
+            throw new ObjectDoesAlreadyExistException(e);
         }
 
     }
@@ -217,10 +217,10 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
             update.setInt(8,object.getBoxID());
 
             if( update.executeUpdate() == 0) {
-                throw new ObjectDoesNotExistException();
+                throw new ObjectDoesNotExistException(new RuntimeException("There are no Boxes that can be updated!"));
             }
         } catch (SQLException e) {
-            throw new ObjectDoesNotExistException();
+            throw new ObjectDoesNotExistException(e);
         }
     }
 
@@ -235,7 +235,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
         try {
             delete.setInt(1, object.getBoxID());
             if( delete.executeUpdate() == 0 )
-                throw new ObjectDoesNotExistException();
+                throw new ObjectDoesNotExistException(new RuntimeException("There is no such Box!"));
 
         } catch (SQLException e) {
             throw new DatabaseException(e);

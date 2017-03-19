@@ -18,6 +18,7 @@ public interface ReservationPersistenceDAO extends PersistenceDAO<Reservation> {
     String QUERY_PARAM_IS_INVOICE = "alreadyinvoice";
     String QUERY_PARAM_LIMIT = "limit";
     String QUERY_PARAM_BOX_ID = "boxid";
+    String QUERY_PARAM_ID = "reservationid";
 
     /**
      * Queries if the Box is reserved in between the start and end date
@@ -29,13 +30,13 @@ public interface ReservationPersistenceDAO extends PersistenceDAO<Reservation> {
     boolean isBoxReserved(Box box, Date start, Date end);
 
     /**
-     * Batch-deletes the reservations
+     * Batch-deletes the reservations (only for one box!)
      * @param o reservations which should be deleted
      */
     void remove(List<Reservation> o);
 
     /**
-     * Batch-merges the reservations
+     * Batch-merges the reservations (only for one box!)
      * @param o reservations which should be deleted
      */
     void merge(List<Reservation> o);

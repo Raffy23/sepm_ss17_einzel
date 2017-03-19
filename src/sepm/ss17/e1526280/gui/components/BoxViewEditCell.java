@@ -13,12 +13,9 @@ import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.gui.controller.BoxCreationController;
 import sepm.ss17.e1526280.gui.dialogs.BoxDetailDialog;
 import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
-import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.gui.dialogs.ExceptionAlert;
 import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.util.GlobalSettings;
-
-import java.io.IOException;
 
 /**
  * Table Cell Renderer for the Edit Cell
@@ -60,37 +57,32 @@ public class BoxViewEditCell extends TableButtonCell<Box, Void> {
             final Stage parentStage = (Stage) super.tableCellButton.getScene().getWindow();
 
             //Open a new Dialog for the Box editing
-            try {
-                final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": " + "Box bearbeiten");
-                final BoxCreationController controller = dialog.getController();
+            final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": " + "Box bearbeiten");
+            final BoxCreationController controller = dialog.getController();
 
-                //Init the Dialog with some Data
-                controller.init(curObj);
-                //Set the Listener in the Dialog
-                controller.setOkBtnEventHandler(event1 -> {
-                    LOG.debug("Update Box " + curObj + " with Dialog Data");
+            //Init the Dialog with some Data
+            controller.init(curObj);
+            //Set the Listener in the Dialog
+            controller.setOkBtnEventHandler(event1 -> {
+                LOG.debug("Update Box " + curObj + " with Dialog Data");
 
-                    //Check for Input validation
-                    if (!controller.validateInput()) {
-                        LOG.info("Input validation failed");
-                        return;
-                    }
+                //Check for Input validation
+                if (!controller.validateInput()) {
+                    LOG.info("Input validation failed");
+                    return;
+                }
 
-                    //Update the Data in the Box and Backend
-                    curObj.updateDataFrom(controller.generateBox());
-                    dataService.update(curObj)
-                            .thenAccept(box -> Platform.runLater(boxTable::refresh))
-                            .exceptionally(BoxViewEditCell::onError);
+                //Update the Data in the Box and Backend
+                curObj.updateDataFrom(controller.generateBox());
+                dataService.update(curObj)
+                        .thenAccept(box -> Platform.runLater(boxTable::refresh))
+                        .exceptionally(BoxViewEditCell::onError);
 
-                    final Button btn = (Button) event1.getSource();
-                    ((Stage) btn.getScene().getWindow()).close();
-                });
+                final Button btn = (Button) event1.getSource();
+                ((Stage) btn.getScene().getWindow()).close();
+            });
 
-                dialog.show();
-            } catch (IOException e) {
-                System.err.println("Fatal: Unable to create BoxDetailDialog!");
-                DialogUtil.onFatal(e);
-            }
+            dialog.show();
         });
     }
 

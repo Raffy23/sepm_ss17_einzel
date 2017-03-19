@@ -6,60 +6,45 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import sepm.ss17.e1526280.dao.exceptions.CheckedDatabaseException;
 import sepm.ss17.e1526280.dao.h2.H2BoxDatabaseDAO;
-import sepm.ss17.e1526280.util.DatabaseService;
-import sepm.ss17.e1526280.util.GlobalSettings;
-import sepm.ss17.e1526280.util.datasource.DataSource;
 import sepm.ss17.e1526280.util.datasource.DatabaseSource;
 
-import java.io.IOException;
 import java.sql.SQLException;
 
 /**
- * Created by
+ * This class initialises the AbstractBoxPersistence test with the
+ * Database backend (H2)
  *
  * @author Raphael Ludwig
  * @version 18.03.17
  */
-public class H2BoxPersistenceTest extends AbstractBoxPersistenceTest {
+public class H2BoxPersistenceTest extends AbstractBoxPersistenceTest implements DatabaseTestDataProvider<H2BoxDatabaseDAO> {
 
     public H2BoxPersistenceTest() throws CheckedDatabaseException {
-        super(setUpDatabaseConnection());
-    }
-
-    private static H2BoxDatabaseDAO setUpDatabaseConnection() throws CheckedDatabaseException {
-        final DataSource source = new DatabaseSource();
-        return (H2BoxDatabaseDAO) source.getBoxDAO();
+        super(new DatabaseSource().getBoxDAO());
     }
 
     @Before
     public void isolateTest() throws SQLException {
-        ((H2BoxDatabaseDAO)dao).getConnection().setAutoCommit(false);
+        getDAO().getConnection().setAutoCommit(false);
     }
 
     @After
     public void removeDataAfterTest() throws SQLException {
-        ((H2BoxDatabaseDAO)dao).getConnection().rollback();
+        getDAO().getConnection().rollback();
     }
 
     @BeforeClass
     public static void setUp() throws CheckedDatabaseException {
-        GlobalSettings.initialize("./config.junit.properties");
-        DatabaseService.initialize();
+        DatabaseTestDataProvider.setUp();
     }
 
     @AfterClass
     public static void turnDown() {
-        try {
-            DatabaseService.getManager().executeSQLFile("sql/drop.sql");
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
-        }
+      DatabaseTestDataProvider.turnDown();
+    }
 
-        DatabaseService.destroyService();
-        try {
-            DatabaseService.deleteDatabaseFiles();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public H2BoxDatabaseDAO getDAO() {
+        return (H2BoxDatabaseDAO) super.dao;
     }
 }

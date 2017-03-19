@@ -117,6 +117,7 @@ public class Reservation {
         Reservation that = (Reservation) o;
 
         if (id != that.id) return false;
+        if (Float.compare(that.price, price) != 0) return false;
         if (alreadyInvoice != that.alreadyInvoice) return false;
         if (box != null ? !box.equals(that.box) : that.box != null) return false;
         if (start != null ? !start.equals(that.start) : that.start != null) return false;
@@ -133,6 +134,7 @@ public class Reservation {
         result = 31 * result + (end != null ? end.hashCode() : 0);
         result = 31 * result + (customer != null ? customer.hashCode() : 0);
         result = 31 * result + (horse != null ? horse.hashCode() : 0);
+        result = 31 * result + (price != +0.0f ? Float.floatToIntBits(price) : 0);
         result = 31 * result + (alreadyInvoice ? 1 : 0);
         return result;
     }
@@ -146,6 +148,7 @@ public class Reservation {
                 ", end=" + end +
                 ", customer='" + customer + '\'' +
                 ", horse='" + horse + '\'' +
+                ", price=" + price +
                 ", alreadyInvoice=" + alreadyInvoice +
                 '}';
     }

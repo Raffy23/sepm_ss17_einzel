@@ -41,7 +41,7 @@ public interface BoxPersistenceDAO extends PersistenceDAO<Box> {
         });
 
         if( data.size() == 0)
-            throw new ObjectDoesNotExistException();
+            throw new ObjectDoesNotExistException(new RuntimeException("There is no such Box in the Database!"));
 
         return data.get(0);
     }

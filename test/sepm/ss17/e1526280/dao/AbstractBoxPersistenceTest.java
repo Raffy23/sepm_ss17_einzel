@@ -15,10 +15,10 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created by
+ * Basic class which does perform some tests on the Box Persistence functions.
  *
  * @author Raphael Ludwig
- * @version 04.03.17
+ * @version 18.03.17
  */
 public abstract class AbstractBoxPersistenceTest {
 
@@ -30,6 +30,7 @@ public abstract class AbstractBoxPersistenceTest {
 
     @Test
     public void insertNewBox() throws ObjectDoesAlreadyExistException {
+        //Check only if persist action is successful
         dao.persist(new Box(23.0f, 23.0f, LitterType.Sawdust,true,false,null));
     }
 
@@ -67,7 +68,7 @@ public abstract class AbstractBoxPersistenceTest {
         Assert.assertEquals(box,target);
     }
 
-    private List<Box> generateBoxes(int count) {
+    public static List<Box> generateBoxes(int count) {
         final List<Box> boxes = new ArrayList<>();
         final Random rand = ThreadLocalRandom.current();
         for(int i=0; i<=count; i++) {
