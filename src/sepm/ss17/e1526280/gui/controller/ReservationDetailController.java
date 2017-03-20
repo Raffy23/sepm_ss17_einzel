@@ -38,6 +38,7 @@ public class ReservationDetailController {
     @FXML private TableColumn<ReservationEntryWrapper,Float> priceCol;
     @FXML private TableColumn<ReservationEntryWrapper,Float> sumPriceCol;
     @FXML private Label priceLabel;
+    @FXML private Label resIDLabel;
 
     /**
      * Initializes all the Data which is needed by the Controller
@@ -61,7 +62,9 @@ public class ReservationDetailController {
         final List<ReservationEntryWrapper> convData = new ArrayList<>();
         wrapper.getBoxes().forEach(reservation -> convData.add(new ReservationEntryWrapper(reservation,wrapper.getDays())));
 
+        resIDLabel.setText(String.valueOf(wrapper.getID()));
         customerName.setText(wrapper.getName());
+
         priceLabel.setText(NumberFormat.getInstance().format(wrapper.getPrice()));
         resTable.setItems(FXCollections.observableArrayList(convData));
     }

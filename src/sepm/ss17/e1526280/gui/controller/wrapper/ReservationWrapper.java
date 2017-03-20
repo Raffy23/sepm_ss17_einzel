@@ -37,6 +37,10 @@ public class ReservationWrapper  {
         return (int) (TimeUnit.DAYS.convert(end.getTime()-start.getTime(),TimeUnit.MILLISECONDS) + 1);
     }
 
+    public int getID() {
+        return boxes.get(0).getId();
+    }
+
     public int getCount() {
         return boxes.size();
     }

@@ -10,6 +10,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sepm.ss17.e1526280.gui.components.ReservationDetailCell;
 import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.ReservationDataService;
@@ -46,7 +47,7 @@ public class InvoiceTableViewController {
     public void initialize() {
         customerCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         boxCountCol.setCellValueFactory(new PropertyValueFactory<>("count"));
-        detailCol.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
+        detailCol.setCellFactory((TableColumn<ReservationWrapper, Void> boxStringTableColumn) -> new ReservationDetailCell());
         priceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
         startCol.setCellValueFactory(new PropertyValueFactory<>("startString"));
         endCol.setCellValueFactory(new PropertyValueFactory<>("endString"));
@@ -72,6 +73,6 @@ public class InvoiceTableViewController {
 
     @FXML
     public void onRefreshAction(ActionEvent event) {
-
+        this.loadData();
     }
 }

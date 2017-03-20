@@ -71,14 +71,23 @@ public class StatisticController {
         dayFrCol.setCellValueFactory(    new PropertyValueFactory<>("friday"));
         daySaCol.setCellValueFactory(    new PropertyValueFactory<>("saturday"));
         daySoCol.setCellValueFactory(    new PropertyValueFactory<>("sunday"));
-        graphCol.setCellValueFactory(    new PropertyValueFactory<>("DUMMY"));
+        graphCol.setCellFactory((TableColumn<StatisticRow, Void> boxStringTableColumn) -> new StatChartCell());
         checkCol.setCellValueFactory(    new PropertyValueFactory<>("DUMMY"));
         detailsCol.setCellValueFactory(  new PropertyValueFactory<>("DUMMY"));
 
-        graphCol.setCellFactory((TableColumn<StatisticRow, Void> boxStringTableColumn) -> new StatChartCell());
-
         startDate.setValue(LocalDate.now());
         endDate.setValue(LocalDate.now());
+
+        //Validators:
+        startDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            if( newValue.isAfter(endDate.getValue()) )
+                startDate.setValue(oldValue);
+        });
+
+        endDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            if( newValue.isBefore(startDate.getValue()) )
+                endDate.setValue(oldValue);
+        });
 
         loadData();
         tableView.setItems(dataList);
