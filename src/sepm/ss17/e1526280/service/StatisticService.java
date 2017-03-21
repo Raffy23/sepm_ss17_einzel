@@ -37,7 +37,7 @@ public class StatisticService implements StatisticalService {
 
                 if( !boxOut.isEmpty() ) {
                     final int[] weekDayData = compileWeekdays(boxOut, start, end);
-                    outData.add(new StatisticRow(box, weekDayData));
+                    outData.add(new StatisticRow(box, boxOut, weekDayData));
                 }
             });
 

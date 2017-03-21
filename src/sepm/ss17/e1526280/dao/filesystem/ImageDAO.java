@@ -36,13 +36,18 @@ public class ImageDAO {
     /**
      * Stores a File in the Storage
      * @param path the path of the File which should be stored in the Storage
-     * @return the File form the Storage
+     * @return the File form the Storage or null if the file already exists
      */
     public File persistImage(String path) {
         LOG.debug("Persist Image: " + path);
 
         final Path source = Paths.get(path);
         final Path target = Paths.get(targetPath+"/"+generateNewBlobFileName(path));
+
+        if( source.equals(target) ) {
+            LOG.warn("persisting an Image that's already persisted!");
+            return null;
+        }
 
         //Copy the Image to the Storage and set the Name so there are no problems with
         //overwriting another one
@@ -77,7 +82,20 @@ public class ImageDAO {
      * @return the file object of the Image in the Storage
      */
     public File getFilePath(String name) {
+        System.out.println(targetPath+"/"+name);
         return Paths.get(targetPath+"/"+name).toAbsolutePath().toFile();
+    }
+
+    /**
+     * @param filePath file path which should be checked
+     * @return true if the file already exists in the database path
+     */
+    public boolean isDatabaseFile(String filePath) {
+        return filePath != null && getFilePath(filePath).exists();
+    }
+
+    public String getFileName(String filePath) {
+        return getFilePath(filePath).getName();
     }
 
     /**

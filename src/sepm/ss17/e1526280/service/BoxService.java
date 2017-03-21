@@ -5,6 +5,7 @@ import sepm.ss17.e1526280.dao.BoxPersistenceDAO;
 import sepm.ss17.e1526280.dao.exceptions.ObjectDoesNotExistException;
 import sepm.ss17.e1526280.dao.filesystem.ImageDAO;
 import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
 import sepm.ss17.e1526280.service.exception.DataException;
 
 import java.io.File;
@@ -63,17 +64,26 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
     @Override
     public CompletableFuture<Box> update(@NotNull Box box) {
         LOG.trace("update: " + box);
+
+        //TODO: Handle image creation & merge as a "transaction"
         return CompletableFuture.supplyAsync(() -> {
             try {
                 final Box oldBox = boxDAO.query(box.getBoxID());
 
-                if (oldBox.getPhoto() != null)
-                    imageDAO.deleteImage(oldBox.getPhoto());
+                if( !(box.getPhoto() != null && new File(box.getPhoto()).exists()) ) {
+                    LOG.debug("Image in Box is not a File, will query the one from the database!");
+                    box.setPhoto(oldBox.getPhoto());
 
-                if (box.getPhoto() != null)
-                    if (new File(box.getPhoto()).exists()) {
-                        persistImageToStore(box);
-                    }
+                    boxDAO.merge(box);
+                    return box;
+                }
+
+                if( !imageDAO.getFilePath(box.getPhoto()).exists() ) {
+                    persistImageToStore(box);
+
+                    if (oldBox.getPhoto() != null)
+                        imageDAO.deleteImage(oldBox.getPhoto());
+                }
 
                 boxDAO.merge(box);
                 return box;
@@ -84,7 +94,6 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
         });
     }
 
-
     /**
      * This function does handle the Image stuff for the Box
      *
@@ -92,8 +101,10 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
      */
     private void persistImageToStore(Box box) {
         LOG.trace("persistImageToStore( " + box + " )");
-        if (box.getPhoto() == null || !new File(box.getPhoto()).exists())
+        if( box.getPhoto() == null ) {
+            LOG.debug("Removing current box ...");
             return;
+        }
 
         final File blob = imageDAO.persistImage(box.getPhoto());
         box.setPhoto(blob.getName());
@@ -104,6 +115,20 @@ public class BoxService extends AbstractService<Box> implements BoxDataService {
      */
     @Override
     public File resolveImage(Box box) {
-        return imageDAO.getFilePath(box.getPhoto());
+        final File f = imageDAO.getFilePath(box.getPhoto());
+        if( f.exists() )
+            return f;
+
+        LOG.debug("Box DTO is not consistent with DAO, will update Object");
+        try {
+            final Box db = boxDAO.query(box.getBoxID());
+            box.setPhoto(db.getPhoto());
+
+            return imageDAO.getFilePath(db.getPhoto());
+        } catch (ObjectDoesNotExistException e) {
+            DialogUtil.onFatal(e);
+        }
+
+        return null;
     }
 }

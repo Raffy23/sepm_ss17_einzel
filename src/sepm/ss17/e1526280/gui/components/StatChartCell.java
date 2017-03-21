@@ -7,6 +7,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.TableCell;
 import sepm.ss17.e1526280.dto.StatisticRow;
+import sepm.ss17.e1526280.gui.controller.wrapper.StatisticRowWrapper;
 
 /**
  * This class does draw the Area Line chart into a Table cell.
@@ -16,7 +17,7 @@ import sepm.ss17.e1526280.dto.StatisticRow;
  * @author Raphael Ludwig
  * @version 17.03.17
  */
-public class StatChartCell extends TableCell<StatisticRow, Void> {
+public class StatChartCell extends TableCell<StatisticRowWrapper, Void> {
     private static final Double MAX_HEIGHT = 50.0D;
 
     private final NumberAxis yAxis = new NumberAxis();

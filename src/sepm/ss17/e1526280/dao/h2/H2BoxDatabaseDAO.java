@@ -32,7 +32,6 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
     /** Logger for logging ... duh **/
     private static final Logger LOG = LoggerFactory.getLogger(H2BoxDatabaseDAO.class);
 
-    //TODO: Comment Statements
     //Some private statements
     private final PreparedStatement queryID;
     private final PreparedStatement update;
@@ -145,7 +144,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
      */
     @Override
     public synchronized void persist(@NotNull Box object) throws ObjectDoesAlreadyExistException {
-        LOG.trace("Persist:\t"+object);
+        LOG.debug("Persist:\t"+object);
 
         try {
             //Have to Check Object if ID is set
@@ -179,10 +178,11 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
             throw new ObjectDoesAlreadyExistException(e);
         }
 
+
+        System.out.println(this.queryAll());
     }
 
     private static void insertWithStatement(PreparedStatement insert, Box object, int p) throws SQLException {

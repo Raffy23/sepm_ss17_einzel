@@ -1,6 +1,7 @@
 package sepm.ss17.e1526280.dto;
 
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * This DTO does contain some Data for the Statistics
@@ -14,10 +15,12 @@ public class StatisticRow {
 
 
     private final Box box;
+    private final List<Reservation> reservationList;
     private final int[] dayCount;
 
-    public StatisticRow(Box box, int[] dayCount) {
+    public StatisticRow(Box box, List<Reservation> reservationList, int[] dayCount) {
         this.box = box;
+        this.reservationList = reservationList;
         this.dayCount = dayCount;
     }
 
@@ -65,4 +68,11 @@ public class StatisticRow {
         return box.getBoxID();
     }
 
+    public int[] getData() {
+        return dayCount;
+    }
+
+    public List<Reservation> getReservationList() {
+        return reservationList;
+    }
 }

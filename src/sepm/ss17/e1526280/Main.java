@@ -90,6 +90,10 @@ public class Main extends Application {
                     LOG.debug("Sanity check done, jumping to real GUI");
                     stage.setScene(mainScene);
                     stage.centerOnScreen();
+
+                    stage.setMinWidth(900);
+                    stage.setMinHeight(685);
+
                     stage.show();
 
                 } catch (IOException e) {

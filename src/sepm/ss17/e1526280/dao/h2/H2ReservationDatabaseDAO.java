@@ -152,7 +152,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
      * @throws SQLException thrown if something goes wrong
      */
     private synchronized void setInsert(Reservation o) throws SQLException {
-        insert.setInt(2,o.getBox().getBoxID());
+        insert.setInt(2,o.getBoxId());
         insert.setDate(3,new Date(o.getStart().getTime()));
         insert.setDate(4,new Date(o.getEnd().getTime()));
         insert.setString(5,o.getCustomer());
@@ -227,9 +227,9 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
      */
     @Override
     public synchronized void persist(@NotNull List<Reservation> o) throws ObjectDoesAlreadyExistException {
-        LOG.debug("Persist\t" + o);
+        LOG.trace("Persist\t" + o);
 
-        int queryID;
+        final int queryID;
         if( o.isEmpty() ) {
             LOG.warn("Can not persist empty List, operation will be aborted!");
             return;
@@ -239,17 +239,22 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             final ResultSet rs = this.queryID.executeQuery();
             rs.next();
 
-            queryID = rs.getInt(1);
+            queryID = rs.getInt(1) + 1;
             for(Reservation oo:o) {
-                insert.setInt(1,queryID++);
+                insert.setInt(1,queryID);
                 setInsert(oo);
 
-                LOG.trace(insert.toString());
-                insert.addBatch();
+                System.out.println(oo.getId());
+                System.out.println(oo.getBoxId());
+
+
+                LOG.debug(insert.toString());
+                //insert.addBatch();
+                insert.executeUpdate();
             }
 
-            insert.executeBatch();
-
+            //insert.executeBatch();
+            o.forEach(reservation -> reservation.setId(queryID));
         } catch (SQLException e) {
             throw new ObjectDoesAlreadyExistException(e);
         }

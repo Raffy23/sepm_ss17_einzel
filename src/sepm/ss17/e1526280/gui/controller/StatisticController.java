@@ -5,15 +5,22 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.dto.StatisticRow;
 import sepm.ss17.e1526280.gui.components.StatChartCell;
+import sepm.ss17.e1526280.gui.controller.wrapper.StatisticRowWrapper;
+import sepm.ss17.e1526280.gui.dialogs.CustomDialog;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
+import sepm.ss17.e1526280.gui.dialogs.StatPriceChangeDialog;
 import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.service.StatisticalService;
 import sepm.ss17.e1526280.util.DataServiceManager;
@@ -24,6 +31,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by
@@ -39,23 +47,23 @@ public class StatisticController {
 
     @FXML private DatePicker startDate;
     @FXML private DatePicker endDate;
-    @FXML private TableView<StatisticRow> tableView;
-    @FXML private TableColumn<StatisticRow, Integer> boxCol;
-    @FXML private TableColumn<StatisticRow, Integer> resCountCol;
-    @FXML private TableColumn<StatisticRow, Integer> dayMonCol;
-    @FXML private TableColumn<StatisticRow, Integer> dayDiCol;
-    @FXML private TableColumn<StatisticRow, Integer> dayMiCol;
-    @FXML private TableColumn<StatisticRow, Integer> dayDoCol;
-    @FXML private TableColumn<StatisticRow, Integer> dayFrCol;
-    @FXML private TableColumn<StatisticRow, Integer> daySaCol;
-    @FXML private TableColumn<StatisticRow, Integer> daySoCol;
-    @FXML private TableColumn<StatisticRow, Void> graphCol;
-    @FXML private TableColumn<StatisticRow, Void> checkCol;
-    @FXML private TableColumn<StatisticRow, Void> detailsCol;
+    @FXML private TableView<StatisticRowWrapper> tableView;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> boxCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> resCountCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> dayMonCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> dayDiCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> dayMiCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> dayDoCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> dayFrCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> daySaCol;
+    @FXML private TableColumn<StatisticRowWrapper, Integer> daySoCol;
+    @FXML private TableColumn<StatisticRowWrapper, Void> graphCol;
+    @FXML private TableColumn<StatisticRowWrapper, CheckBox> checkCol;
+    @FXML private TableColumn<StatisticRowWrapper, Button> detailsCol;
 
     private final StatisticalService service = DataServiceManager.getService().getStatisticalService();
     private final BoxDataService boxService = DataServiceManager.getService().getBoxDataService();
-    private final ObservableList<StatisticRow> dataList = FXCollections.observableList(new ArrayList<>());
+    private final ObservableList<StatisticRowWrapper> dataList = FXCollections.observableList(new ArrayList<>());
 
     /**
      * Initializes all the Data which is needed by the Controller
@@ -71,9 +79,9 @@ public class StatisticController {
         dayFrCol.setCellValueFactory(    new PropertyValueFactory<>("friday"));
         daySaCol.setCellValueFactory(    new PropertyValueFactory<>("saturday"));
         daySoCol.setCellValueFactory(    new PropertyValueFactory<>("sunday"));
-        graphCol.setCellFactory((TableColumn<StatisticRow, Void> boxStringTableColumn) -> new StatChartCell());
-        checkCol.setCellValueFactory(    new PropertyValueFactory<>("DUMMY"));
-        detailsCol.setCellValueFactory(  new PropertyValueFactory<>("DUMMY"));
+        graphCol.setCellFactory((TableColumn<StatisticRowWrapper, Void> boxStringTableColumn) -> new StatChartCell());
+        checkCol.setCellValueFactory(    new PropertyValueFactory<>("checkBox"));
+        detailsCol.setCellValueFactory(  new PropertyValueFactory<>("details"));
 
         startDate.setValue(LocalDate.now());
         endDate.setValue(LocalDate.now());
@@ -96,6 +104,18 @@ public class StatisticController {
 
     @FXML
     public void onChangePrice(ActionEvent event) {
+        final List<Box> boxes = dataList.stream()
+                                        .filter(statisticRowWrapper -> statisticRowWrapper.getCheckBox().isSelected())
+                                        .map(StatisticRow::getBox)
+                                        .collect(Collectors.toList());
+
+        if( boxes.size() > 0 ) {
+            final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
+            final StatisticEditController controller = dialog.getController();
+
+            controller.setData(boxes);
+            dialog.show();
+        }
 
     }
 
@@ -111,10 +131,8 @@ public class StatisticController {
 
 
     private void loadData() {
-        if( !Platform.isFxApplicationThread() )
-            Platform.runLater(dataList::clear);
-        else
-            dataList.clear();
+        if( !Platform.isFxApplicationThread() ) Platform.runLater(dataList::clear);
+        else                                    dataList.clear();
 
         boxService.queryAll()
                 .thenAccept(boxes -> {
@@ -123,9 +141,20 @@ public class StatisticController {
                             , Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()))
                             .join(); //We want the Data in this Thread, no need to query the Data in another Future
 
-                    Platform.runLater(() -> dataList.addAll(data));
+                    Platform.runLater(() -> dataList.addAll(registerDetailEvent(convert(data))));
                 }).exceptionally(DialogUtil::onError);
     }
 
+    private static List<StatisticRowWrapper> registerDetailEvent(List<StatisticRowWrapper> in) {
+        in.forEach(statisticRowWrapper -> statisticRowWrapper.getDetails().setOnAction(event -> {
+            final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
+            dialog.show();
+        }));
+        return in;
+    }
+
+    private static List<StatisticRowWrapper> convert(List<StatisticRow> in) {
+        return in.stream().map(StatisticRowWrapper::new).collect(Collectors.toList());
+    }
 
 }

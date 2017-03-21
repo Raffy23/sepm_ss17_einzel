@@ -42,6 +42,11 @@ public class H2ReservationPersistenceTest extends AbstractReservationPersistence
     @BeforeClass
     public static void setUp() throws CheckedDatabaseException {
         DatabaseTestDataProvider.setUp();
+        try {
+            new DatabaseSource().getBoxDAO().persist(AbstractBoxPersistenceTest.generateBoxes(200));
+        } catch (ObjectDoesAlreadyExistException e) {
+            e.printStackTrace();
+        }
     }
 
     @AfterClass

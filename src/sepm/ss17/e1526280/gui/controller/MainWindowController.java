@@ -60,7 +60,6 @@ public class MainWindowController {
             DialogUtil.onFatal(e);
         }
 
-
     }
 
 }

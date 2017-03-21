@@ -30,9 +30,6 @@ public abstract class AbstractReservationPersistenceTest {
     protected AbstractReservationPersistenceTest(ReservationPersistenceDAO dao, BoxPersistenceDAO boxPersistenceDAO) throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
         this.dao = dao;
         this.boxPersistenceDAO = boxPersistenceDAO;
-
-        // Seed some Boxes as Data, if some tests of the Boxes fail this will also fail ...
-        boxPersistenceDAO.persist(AbstractBoxPersistenceTest.generateBoxes(200));
         dummyBox = boxPersistenceDAO.query(1);
     }
 
@@ -112,7 +109,7 @@ public abstract class AbstractReservationPersistenceTest {
         dao.remove(data);
     }
 
-    private List<Reservation> generateReservations(int count, boolean sameBox) throws ObjectDoesNotExistException {
+    private List<Reservation> generateReservations(int count) throws ObjectDoesNotExistException {
         final Calendar cal = Calendar.getInstance();
         cal.setTime(new Date());
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -122,17 +119,15 @@ public abstract class AbstractReservationPersistenceTest {
 
 
         final List<Reservation> data = new ArrayList<>();
-        Box box = dummyBox;
-
         for(int i=0;i <count; i++) {
             final Date start1 = cal.getTime();
             cal.add(Calendar.DATE, 1);
             final Date end1   = cal.getTime();
             cal.add(Calendar.DATE, 1);
 
-            if( !sameBox )
-                box = boxPersistenceDAO.query(i+1);
+            final Box box = boxPersistenceDAO.query(i+1);
 
+            System.out.println(box);
             data.add(new Reservation(box, start1, end1, "Customer " + i, "Horse " + i, 250.0f));
         }
 
@@ -141,13 +136,15 @@ public abstract class AbstractReservationPersistenceTest {
 
     @Test
     public void insertMultiple() throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
-        final List<Reservation> data = generateReservations(25, true);
+        System.out.println(dao.queryAll());
+
+        final List<Reservation> data = generateReservations(25);
         dao.persist(data);
     }
 
     @Test
     public void testRemoveMultiple() throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
-        final List<Reservation> data = generateReservations(20, false);
+        final List<Reservation> data = generateReservations(20);
         for(Reservation reservation:data)
             dao.persist(reservation);
 
@@ -157,7 +154,7 @@ public abstract class AbstractReservationPersistenceTest {
 
     @Test
     public void testBoxReservedPositive() throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
-        final List<Reservation> data = generateReservations(5, true);
+        final List<Reservation> data = generateReservations(5);
         dao.persist(data);
 
         final Calendar cal = Calendar.getInstance();
@@ -183,7 +180,7 @@ public abstract class AbstractReservationPersistenceTest {
 
     @Test
     public void testBoxReservedNegative() throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
-        final List<Reservation> data = generateReservations(2, true);
+        final List<Reservation> data = generateReservations(2);
         dao.persist(data);
 
         final Calendar cal = Calendar.getInstance();
