@@ -55,6 +55,7 @@ public interface BoxDataService extends BasicService<Box> {
         //Fill search Map with the Values
         final Map<String,Object> searchData = new HashMap<String,Object>() {
             {
+                put(BoxPersistenceDAO.QUERY_PARAM_DELFLAG, false);
                 put(BoxPersistenceDAO.QUERY_PARAM_LITTER, litterType);
                 put(BoxPersistenceDAO.QUERY_PARAM_PRICE, price);
                 put(BoxPersistenceDAO.QUERY_PARAM_SIZE, size);

@@ -129,6 +129,7 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
                         , result.getBoolean(8)));
             }
 
+
             s.close();
         } catch (SQLException e) {
             throw new DatabaseException(e);

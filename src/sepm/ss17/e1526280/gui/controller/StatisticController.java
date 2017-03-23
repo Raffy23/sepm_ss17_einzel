@@ -150,6 +150,7 @@ public class StatisticController {
             final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
             dialog.show();
         }));
+
         return in;
     }
 

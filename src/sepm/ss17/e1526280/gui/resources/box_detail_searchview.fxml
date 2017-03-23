@@ -20,16 +20,16 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label text="Price" />
-            <Label text="Size" GridPane.rowIndex="1" />
-            <Label text="Litter" GridPane.rowIndex="2" />
-            <Label text="Window" GridPane.rowIndex="3" />
+            <Label text="Preis" />
+            <Label text="Größe" GridPane.rowIndex="1" />
+            <Label text="Streu" GridPane.rowIndex="2" />
+            <Label text="Fenster" GridPane.rowIndex="3" />
             <Label text="Indoor" GridPane.rowIndex="4" />
             <TextField fx:id="priceTextField" promptText="Price of the Box" GridPane.columnIndex="1" />
             <TextField fx:id="sizeTextField" promptText="Size of the Box" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <ComboBox fx:id="litterComboBox" prefWidth="150.0" promptText="Litter used" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <ComboBox fx:id="windowBox" prefWidth="150.0" promptText="Ignore Field" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <ComboBox fx:id="indoorBox" prefWidth="150.0" promptText="Ignore Field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <ComboBox fx:id="litterComboBox" prefWidth="150.0" promptText="Streu in verwendung" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <ComboBox fx:id="windowBox" prefWidth="150.0" promptText="Ignorieren" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <ComboBox fx:id="indoorBox" prefWidth="150.0" promptText="Ignorieren" GridPane.columnIndex="1" GridPane.rowIndex="4" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
@@ -39,8 +39,8 @@
    <bottom>
       <ButtonBar prefHeight="48.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <buttons>
-          <Button mnemonicParsing="false" onAction="#onCancel" text="Cancel" />
-            <Button fx:id="searchBtn" mnemonicParsing="false" text="Search" />
+          <Button cancelButton="true" mnemonicParsing="false" onAction="#onCancel" text="Abbrechen" />
+            <Button fx:id="searchBtn" defaultButton="true" mnemonicParsing="false" text="Suchen" />
         </buttons>
          <opaqueInsets>
             <Insets right="5.0" />

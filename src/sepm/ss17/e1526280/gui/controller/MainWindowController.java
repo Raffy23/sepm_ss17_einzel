@@ -60,6 +60,11 @@ public class MainWindowController {
             DialogUtil.onFatal(e);
         }
 
+        // Set some change listeners
+        boxesTab.setOnSelectionChanged(event -> ((BoxTableViewController)boxFragment.getController()).loadData());
+        reservationsTab.setOnSelectionChanged(event -> ((ReservationTableViewController)resFragment.getController()).loadData());
+        invoiceTab.setOnSelectionChanged(event -> ((InvoiceTableViewController)invFragment.getController()).loadData());
+        statisticTab.setOnSelectionChanged(event -> ((StatisticController)staFragment.getController()).onReload(null));
     }
 
 }

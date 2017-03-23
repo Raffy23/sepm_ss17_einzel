@@ -50,4 +50,12 @@ public interface ReservationPersistenceDAO extends PersistenceDAO<Reservation> {
      */
     List<Reservation> queryFor(Box box,Date start, Date end);
 
+    /**
+     * Searches for all reservations between the start and end date
+     * @param start start date of the search
+     * @param end end date of the search
+     * @return a list of reservations
+     */
+    List<Reservation> queryBetween(Date start, Date end);
+
 }

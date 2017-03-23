@@ -67,7 +67,7 @@ public class StatisticEditController {
         boxWindow.setText(String.valueOf(e.isWindow()));
         boxIndoor.setText(String.valueOf(e.isIndoor()));
 
-        if( e.getPhoto() == null && e.getPhoto().length() > 5)
+        if( e.getPhoto() == null || e.getPhoto().length() > 5)
             imgBtn.setDisable(true);
         else
             imgBtn.setDisable(false);

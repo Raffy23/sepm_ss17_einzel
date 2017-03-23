@@ -17,7 +17,7 @@
             <TableColumn fx:id="boxIndoorCol" prefWidth="75.0" text="Indoor" />
             <TableColumn fx:id="boxImageCol" prefWidth="75.0" sortable="false" text="Bild" />
             <TableColumn fx:id="boxEditCol" prefWidth="115.0" sortable="false" text="Bearbeiten" />
-            <TableColumn fx:id="boxDeleteCol" prefWidth="106.0" text="Löschen" />
+            <TableColumn fx:id="boxDeleteCol" prefWidth="106.0" sortable="false" text="Löschen" />
          </columns>
       </TableView>
       <ButtonBar layoutX="98.0" layoutY="498.0" prefHeight="40.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">

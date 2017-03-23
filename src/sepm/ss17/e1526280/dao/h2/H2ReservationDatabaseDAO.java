@@ -31,7 +31,9 @@ import java.util.Map;
  */
 public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> implements ReservationPersistenceDAO {
 
-    /** Logger for logging ... duh **/
+    /**
+     * Logger for logging ... duh
+     **/
     private static final Logger LOG = LoggerFactory.getLogger(H2ReservationDatabaseDAO.class);
 
     private final BoxPersistenceDAO boxDAO = new H2BoxDatabaseDAO();
@@ -42,9 +44,10 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
     private final PreparedStatement update;
     private final PreparedStatement reservedCount;
     private final PreparedStatement reserved;
+    private final PreparedStatement reservationDataBetween;
 
     public H2ReservationDatabaseDAO() {
-        super(DatabaseService.getManager(),"Reservation");
+        super(DatabaseService.getManager(), "Reservation");
         LOG.trace("Constructor");
 
         final Connection connection = getConnection();
@@ -53,8 +56,9 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             delete = connection.prepareStatement("DELETE FROM RESERVATION WHERE RESERVATIONID=? AND BOXID=?");
             queryID = connection.prepareStatement("SELECT MAX(RESERVATIONID) FROM RESERVATION");
             update = connection.prepareStatement("UPDATE RESERVATION SET ALREADYINVOICE=?, START=?, END=?, CUSTOMER=?, HORSE=? WHERE RESERVATIONID=?");
-            reservedCount = connection.prepareStatement("SELECT COUNT(*) FROM RESERVATION WHERE boxid = ? AND ((? < start AND ? > end) OR (? BETWEEN start and end OR ? BETWEEN start and end))");
-            reserved = connection.prepareStatement("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM RESERVATION WHERE BOXID=? AND ((? < start AND ? > end) OR (? BETWEEN start and end OR ? BETWEEN start and end))");
+            reservedCount = connection.prepareStatement("SELECT COUNT(*) FROM RESERVATION WHERE boxid = ? AND ((? < start AND ? > end) OR (? BETWEEN start AND end OR ? BETWEEN start AND end))");
+            reserved = connection.prepareStatement("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM RESERVATION WHERE BOXID=? AND ((? < start AND ? > end) OR (? BETWEEN start AND end OR ? BETWEEN start AND end))");
+            reservationDataBetween = connection.prepareStatement("SELECT RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE FROM RESERVATION WHERE ALREADYINVOICE = FALSE AND ((? < start AND ? > end) OR (? BETWEEN start AND end OR ? BETWEEN start AND end))");
         } catch (SQLException e) {
             throw new DatabaseException(e);
         }
@@ -76,6 +80,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             update.close();
             reservedCount.close();
             reserved.close();
+            reservationDataBetween.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,27 +93,30 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
     public synchronized List<Reservation> query(@NotNull Map<String, Object> param) {
         final List<Reservation> data = new ArrayList<>();
         final StringBuilder rawStatement = new StringBuilder();
-        final Map<String,Integer> order = new HashMap<>();
+        final Map<String, Integer> order = new HashMap<>();
 
         //Build SQL-String for the prepared Statement
-        rawStatement.append(generateQueryStatement("RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE",param, order));
+        rawStatement.append(generateQueryStatement("RESERVATIONID,BOXID,START,END,CUSTOMER,HORSE,PRICE,ALREADYINVOICE", param, order));
 
         try {
             final PreparedStatement s = getConnection().prepareStatement(rawStatement.toString());
-            LOG.debug("Query:\t"+rawStatement + " with data " + param);
+            LOG.debug("Query:\t" + rawStatement + " with data " + param);
 
             //Fill the Data into the Statement
-            if( !param.isEmpty() ) {
-                if (param.containsKey(QUERY_PARAM_IS_INVOICE)) s.setBoolean(order.get(QUERY_PARAM_IS_INVOICE), (Boolean) param.get(QUERY_PARAM_IS_INVOICE));
-                if (param.containsKey(QUERY_PARAM_BOX_ID)) s.setInt(order.get(QUERY_PARAM_BOX_ID), (Integer) param.get(QUERY_PARAM_BOX_ID));
-                if (param.containsKey(QUERY_PARAM_ID)) s.setInt(order.get(QUERY_PARAM_ID), (Integer) param.get(QUERY_PARAM_ID));
+            if (!param.isEmpty()) {
+                if (param.containsKey(QUERY_PARAM_IS_INVOICE))
+                    s.setBoolean(order.get(QUERY_PARAM_IS_INVOICE), (Boolean) param.get(QUERY_PARAM_IS_INVOICE));
+                if (param.containsKey(QUERY_PARAM_BOX_ID))
+                    s.setInt(order.get(QUERY_PARAM_BOX_ID), (Integer) param.get(QUERY_PARAM_BOX_ID));
+                if (param.containsKey(QUERY_PARAM_ID))
+                    s.setInt(order.get(QUERY_PARAM_ID), (Integer) param.get(QUERY_PARAM_ID));
             }
 
             //Finally execute Query
             final ResultSet rs = s.executeQuery();
-            while( rs.next() ) {
+            while (rs.next()) {
                 final Box box = boxDAO.query(rs.getInt(2));
-                data.add( resultSetToReservation(rs, box) );
+                data.add(resultSetToReservation(rs, box));
             }
 
             s.close();
@@ -124,19 +132,19 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
      */
     @Override
     public synchronized void persist(@NotNull Reservation o) throws ObjectDoesAlreadyExistException {
-        LOG.debug("Persist:\t"+o);
+        LOG.debug("Persist:\t" + o);
 
         try {
 
             int queryID = o.getId();
-            if( o.getId() < 0 ) {
+            if (o.getId() < 0) {
                 final ResultSet rs = this.queryID.executeQuery();
                 rs.next();
 
                 queryID = rs.getInt(1) + 1;
             }
 
-            insert.setInt(1,queryID);
+            insert.setInt(1, queryID);
             setInsert(o);
             insert.executeUpdate();
 
@@ -148,17 +156,18 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
 
     /**
      * Sets all Data to the insert Statement except the ID
+     *
      * @param o reservation which should be inserted
      * @throws SQLException thrown if something goes wrong
      */
     private synchronized void setInsert(Reservation o) throws SQLException {
-        insert.setInt(2,o.getBoxId());
-        insert.setDate(3,new Date(o.getStart().getTime()));
-        insert.setDate(4,new Date(o.getEnd().getTime()));
-        insert.setString(5,o.getCustomer());
-        insert.setString(6,o.getHorse());
-        insert.setFloat(7,o.getPrice());
-        insert.setBoolean(8,o.isAlreadyInvoice());
+        insert.setInt(2, o.getBoxId());
+        insert.setDate(3, new Date(o.getStart().getTime()));
+        insert.setDate(4, new Date(o.getEnd().getTime()));
+        insert.setString(5, o.getCustomer());
+        insert.setString(6, o.getHorse());
+        insert.setFloat(7, o.getPrice());
+        insert.setBoolean(8, o.isAlreadyInvoice());
     }
 
     /**
@@ -166,12 +175,12 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
      */
     @Override
     public synchronized void merge(@NotNull Reservation o) throws ObjectDoesNotExistException {
-        LOG.debug("Merge\t"+o);
+        LOG.debug("Merge\t" + o);
 
         try {
             fillUpdateStatement(o);
 
-            if( update.executeUpdate() == 0 )
+            if (update.executeUpdate() == 0)
                 throw new ObjectDoesNotExistException(new RuntimeException("There is no such Reservation in the Database"));
 
         } catch (SQLException e) {
@@ -194,7 +203,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         try {
 
             for (Reservation o : oo) {
-               fillUpdateStatement(o);
+                fillUpdateStatement(o);
                 update.addBatch();
             }
 
@@ -212,9 +221,9 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         LOG.debug("Remove\t" + o);
 
         try {
-            delete.setInt(1,o.getId());
-            delete.setInt(2,o.getBoxId());
-            if( delete.executeUpdate() != 1) {
+            delete.setInt(1, o.getId());
+            delete.setInt(2, o.getBoxId());
+            if (delete.executeUpdate() != 1) {
                 throw new ObjectDoesNotExistException(new RuntimeException("There is no such Reservation in the Databse"));
             }
         } catch (SQLException e) {
@@ -230,7 +239,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         LOG.trace("Persist\t" + o);
 
         final int queryID;
-        if( o.isEmpty() ) {
+        if (o.isEmpty()) {
             LOG.warn("Can not persist empty List, operation will be aborted!");
             return;
         }
@@ -240,17 +249,13 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             rs.next();
 
             queryID = rs.getInt(1) + 1;
-            for(Reservation oo:o) {
-                insert.setInt(1,queryID);
+            for (Reservation oo : o) {
+                insert.setInt(1, queryID);
                 setInsert(oo);
 
-                System.out.println(oo.getId());
-                System.out.println(oo.getBoxId());
-
-
                 LOG.debug(insert.toString());
-                //insert.addBatch();
-                insert.executeUpdate();
+                insert.addBatch();
+                //insert.executeUpdate();
             }
 
             //insert.executeBatch();
@@ -266,14 +271,14 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
      */
     @Override
     public synchronized boolean isBoxReserved(Box box, java.util.Date start, java.util.Date end) {
-        LOG.debug("isBoxReserved: "+box+" from " + start +" to " + end);
+        LOG.debug("isBoxReserved: " + box + " from " + start + " to " + end);
 
         try {
-            reservedCount.setInt(1,box.getBoxID());
-            reservedCount.setDate(2,new Date(start.getTime()));
-            reservedCount.setDate(3,new Date(end.getTime()));
-            reservedCount.setDate(4,new Date(start.getTime()));
-            reservedCount.setDate(5,new Date(end.getTime()));
+            reservedCount.setInt(1, box.getBoxID());
+            reservedCount.setDate(2, new Date(start.getTime()));
+            reservedCount.setDate(3, new Date(end.getTime()));
+            reservedCount.setDate(4, new Date(start.getTime()));
+            reservedCount.setDate(5, new Date(end.getTime()));
 
             final ResultSet rs = reservedCount.executeQuery();
             rs.next();
@@ -291,13 +296,13 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
     @Override
     public synchronized void remove(List<Reservation> o) {
         LOG.debug("Batch-Remove\t" + o);
-        if( o.isEmpty() ) {
+        if (o.isEmpty()) {
             LOG.warn("Can not remove empty List, operation will be aborted!");
             return;
         }
 
         try {
-            for(Reservation oo:o){
+            for (Reservation oo : o) {
                 delete.setInt(1, oo.getId());
                 delete.setInt(2, oo.getBoxId());
 
@@ -320,20 +325,43 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
         LOG.debug("queryFor " + box + " between " + start + " and " + end);
 
         try {
-            reserved.setInt(1,box.getBoxID());
-            reserved.setDate(2,new Date(start.getTime()));
-            reserved.setDate(3,new Date(end.getTime()));
-            reserved.setDate(4,new Date(start.getTime()));
-            reserved.setDate(5,new Date(end.getTime()));
+            reserved.setInt(1, box.getBoxID());
+            reserved.setDate(2, new Date(start.getTime()));
+            reserved.setDate(3, new Date(end.getTime()));
+            reserved.setDate(4, new Date(start.getTime()));
+            reserved.setDate(5, new Date(end.getTime()));
 
             final ResultSet rs = reserved.executeQuery();
 
-            while( rs.next() ) {
-                result.add( resultSetToReservation(rs, box) );
+            while (rs.next()) {
+                result.add(resultSetToReservation(rs, box));
             }
 
         } catch (SQLException e) {
             throw new DatabaseException(e);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<Reservation> queryBetween(java.util.Date start, java.util.Date end) {
+        final List<Reservation> result = new ArrayList<>();
+
+        try {
+            reservationDataBetween.setDate(1, new Date(start.getTime()));
+            reservationDataBetween.setDate(2, new Date(end.getTime()));
+            reservationDataBetween.setDate(3, new Date(start.getTime()));
+            reservationDataBetween.setDate(4, new Date(end.getTime()));
+
+            final ResultSet rs = reservationDataBetween.executeQuery();
+            while (rs.next()) {
+                final Box box = boxDAO.query(rs.getInt(2));
+                result.add(resultSetToReservation(rs, box));
+            }
+
+        } catch (SQLException | ObjectDoesNotExistException e) {
+           throw new DatabaseException(e);
         }
 
         return result;

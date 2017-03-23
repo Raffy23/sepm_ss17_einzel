@@ -12,8 +12,10 @@ import sepm.ss17.e1526280.util.GlobalSettings;
  */
 public class ReservationEditDialog extends CustomDialog<ReservationEditController> {
 
-    private static final String fxml = GlobalSettings.FXML_ROOT + "/" + "reservation_editview.fxml";
-    private static final String header = "Reservierung bearbeiten";
+    private static final String FXML_PATH = GlobalSettings.FXML_ROOT + "/" + "reservation_editview.fxml";
+
+    /** The Title of the Dialog **/
+    private static final String TITLE = GlobalSettings.APP_TITLE + ": Reservierung bearbeiten";
 
     /**
      * Creates the Reservation-Detail Dialog
@@ -21,6 +23,6 @@ public class ReservationEditDialog extends CustomDialog<ReservationEditControlle
      * @param owner the owner stage of the Dialog
      */
     public ReservationEditDialog(Stage owner) {
-        super(owner, header , fxml);
+        super(owner, TITLE, FXML_PATH);
     }
 }

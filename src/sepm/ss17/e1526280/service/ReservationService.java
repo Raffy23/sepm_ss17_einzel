@@ -23,35 +23,54 @@ import java.util.concurrent.CompletableFuture;
  */
 public class ReservationService extends AbstractService<Reservation> implements ReservationDataService {
 
+    /** The DAO which is used to query and modify Data **/
     private final ReservationPersistenceDAO persistenceDAO;
 
+    /**
+     * Creates a ReservationService with the DAO to do the data operations
+     * @param persistenceDAO which is used to to the data operation in the backend
+     */
     public ReservationService(ReservationPersistenceDAO persistenceDAO) {
         super(persistenceDAO,ReservationService.class);
         this.persistenceDAO = persistenceDAO;
     }
 
+    /**
+     * This function does group the Reservations by their boxes
+     * @param rawData which should be groups
+     * @return a List of groups reservations (in a List)
+     */
+    private static Collection<List<Reservation>> group(List<Reservation> rawData) {
+        final Map<Integer,List<Reservation>> dataCollector = new HashMap<>();
+
+        rawData.forEach(reservation -> {
+            final List<Reservation> dL = dataCollector.getOrDefault(reservation.getId(),new ArrayList<>());
+            dL.add(reservation);
+
+            dataCollector.put(reservation.getId(),dL);
+        });
+
+        return dataCollector.values();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<Collection<List<Reservation>>> queryGrouped(boolean isInvoice) {
         LOG.debug("Query Grouped ("+isInvoice+")");
 
         return CompletableFuture.supplyAsync(() -> {
-            final Map<Integer,List<Reservation>> dataCollector = new HashMap<>();
             final Map<String,Object> parameters = new HashMap<>();
             parameters.put(ReservationPersistenceDAO.QUERY_PARAM_IS_INVOICE, isInvoice);
 
-            final List<Reservation> rawData = persistenceDAO.query(parameters);
-
-            rawData.forEach(reservation -> {
-                final List<Reservation> dL = dataCollector.getOrDefault(reservation.getId(),new ArrayList<>());
-                dL.add(reservation);
-
-                dataCollector.put(reservation.getId(),dL);
-            });
-
-            return dataCollector.values();
+            return group(persistenceDAO.query(parameters));
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<List<Reservation>> delete(List<Reservation> o) {
         LOG.debug("Delete " + o);
@@ -62,6 +81,9 @@ public class ReservationService extends AbstractService<Reservation> implements 
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<List<Box>> queryBlocked(List<Box> boxes, Date start, Date end) {
         LOG.debug("Query Blocked Boxes " + boxes + " between " + start + " and " + end);
@@ -78,6 +100,9 @@ public class ReservationService extends AbstractService<Reservation> implements 
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<List<Reservation>> toInvoice(List<Reservation> o) {
         LOG.debug("Convert to Invoice " + o);
@@ -97,6 +122,9 @@ public class ReservationService extends AbstractService<Reservation> implements 
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<List<Reservation>> update(List<Reservation> o) {
         LOG.debug("Update " + o);
@@ -107,10 +135,23 @@ public class ReservationService extends AbstractService<Reservation> implements 
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public CompletableFuture<List<Reservation>> queryFor(Box box, Date start, Date end) {
         LOG.debug("queryFor: " + box + " between " + start + " " + end);
 
         return CompletableFuture.supplyAsync(() -> persistenceDAO.queryFor(box,start,end));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CompletableFuture<Collection<List<Reservation>>> queryAllIn(Date start, Date end) {
+        LOG.debug("queryAllIn: " + start + " to " + end);
+
+        return CompletableFuture.supplyAsync(() -> group(persistenceDAO.queryBetween(start,end)));
     }
 }

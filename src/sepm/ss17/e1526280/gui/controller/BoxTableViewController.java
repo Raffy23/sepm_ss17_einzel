@@ -26,6 +26,7 @@ import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 /**
  * The Controller of the Box View,
@@ -87,13 +88,7 @@ public class BoxTableViewController {
         boxDeleteCol.setCellFactory((TableColumn<Box, Void> boxStringTableColumn) -> new BoxDeleteCell(boxDataService,boxObservableList));
 
         //Load all the Box Data into the UI:
-        boxDataService.queryVisible().thenAcceptAsync(boxes -> {
-            LOG.info("Data was loaded successfully");
-            Platform.runLater(() -> boxObservableList.setAll(boxes));
-
-            //Refresh the Box in the UI Thread after we are done ...
-            //Platform.runLater(boxTable::refresh);
-        }).exceptionally(DialogUtil::onError);
+        this.loadData();
 
         //Set the Datasource for the BoxTable
         boxTable.setItems(boxObservableList);
@@ -205,5 +200,12 @@ public class BoxTableViewController {
      */
     private void setData(List<Box> boxList) {
         Platform.runLater(() -> boxObservableList.addAll(boxList));
+    }
+
+    public void loadData() {
+        boxDataService.queryVisible().thenAcceptAsync(boxes -> {
+            LOG.info("Data was loaded successfully");
+            Platform.runLater(() -> boxObservableList.setAll(boxes));
+        }).exceptionally(DialogUtil::onError);
     }
 }

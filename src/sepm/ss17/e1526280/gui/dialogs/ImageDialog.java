@@ -26,14 +26,15 @@ public class ImageDialog {
 
         stage.setTitle("Bild von der Box (" + box.getBoxID() + ")");
 
-        final String resource = service.resolveImage(box).getAbsolutePath();
-        final String rPath = new File(resource).toURI().getPath();
-        final Image img = new Image("file:"+rPath);
+        final String resource = service.resolveImage(box).toURI().getPath();
+        final Image img = new Image("file:"+resource);
         final ImageView imageView = new ImageView();
 
         pane.setCenter(imageView);
 
         imageView.setImage(img);
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(600);
 
         stage.setScene(scene);
         stage.showAndWait();

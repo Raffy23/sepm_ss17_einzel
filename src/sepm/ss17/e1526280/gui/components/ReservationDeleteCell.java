@@ -48,8 +48,8 @@ public class ReservationDeleteCell extends TableButtonCell<ReservationWrapper, V
         final LocalDate date = curObj.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         // Disable if the Box should not be edited
-        if( LocalDate.now().isAfter(date) )
-            super.tableCellButton.setDisable(true);
+        if( LocalDate.now().isAfter(date) ) super.tableCellButton.setDisable(true);
+        else                                super.tableCellButton.setDisable(false);
 
         // Register Button Listener
         super.tableCellButton.setOnAction(event -> {

@@ -8,13 +8,20 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Created by
+ * This interface does Provide the basic functionality for the statistical methods
  *
  * @author Raphael Ludwig
  * @version 16.03.17
  */
 public interface StatisticalService {
 
+    /**
+     * Queries for the list of Boxes all statistic rows form the start to the end date
+     * @param boxes list of boxes which should be queried
+     * @param start start date
+     * @param end end date
+     * @return a future with the list of the results
+     */
     CompletableFuture<List<StatisticRow>> query(List<Box> boxes, Date start, Date end);
 
 }
