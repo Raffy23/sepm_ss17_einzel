@@ -37,6 +37,8 @@ public class MainWindowController {
      */
     @FXML
     public void initialize() {
+        LOG.trace("initialize");
+
         //Init Fragments for Display:
         final FXMLLoader boxFragment = new FXMLLoader(getClass().getResource(BOX_FRAGMENT));
         final FXMLLoader resFragment = new FXMLLoader(getClass().getResource(RES_FRAGMENT));
@@ -60,6 +62,7 @@ public class MainWindowController {
             DialogUtil.onFatal(e);
         }
 
+        LOG.trace("Register Change Listeners");
         // Set some change listeners
         boxesTab.setOnSelectionChanged(event -> ((BoxTableViewController)boxFragment.getController()).loadData());
         reservationsTab.setOnSelectionChanged(event -> ((ReservationTableViewController)resFragment.getController()).loadData());

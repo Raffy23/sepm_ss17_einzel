@@ -5,6 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
@@ -24,17 +25,16 @@ import sepm.ss17.e1526280.gui.dialogs.StatPriceChangeDialog;
 import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.service.StatisticalService;
 import sepm.ss17.e1526280.util.DataServiceManager;
+import sepm.ss17.e1526280.util.DateUtil;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by
+ * Controller which does manage the main View of the Statistics
  *
  * @author Raphael Ludwig
  * @version 16.03.17
@@ -70,6 +70,8 @@ public class StatisticController {
      */
     @FXML
     public void initialize() {
+        LOG.debug("initialize");
+
         boxCol.setCellValueFactory(      new PropertyValueFactory<>("boxID"));
         resCountCol.setCellValueFactory( new PropertyValueFactory<>("count"));
         dayMonCol.setCellValueFactory(   new PropertyValueFactory<>("monday"));
@@ -83,6 +85,7 @@ public class StatisticController {
         checkCol.setCellValueFactory(    new PropertyValueFactory<>("checkBox"));
         detailsCol.setCellValueFactory(  new PropertyValueFactory<>("details"));
 
+        // Set initial data
         startDate.setValue(LocalDate.now());
         endDate.setValue(LocalDate.now());
 
@@ -97,6 +100,7 @@ public class StatisticController {
                 endDate.setValue(oldValue);
         });
 
+        // Load Data
         loadData();
         tableView.setItems(dataList);
         tableView.getStylesheets().add(GlobalSettings.FXML_ROOT+"/custom_table.css");
@@ -104,17 +108,23 @@ public class StatisticController {
 
     @FXML
     public void onChangePrice(ActionEvent event) {
+        LOG.trace("onChangePrice Event");
+
         final List<Box> boxes = dataList.stream()
                                         .filter(statisticRowWrapper -> statisticRowWrapper.getCheckBox().isSelected())
                                         .map(StatisticRow::getBox)
                                         .collect(Collectors.toList());
 
         if( boxes.size() > 0 ) {
+            LOG.debug("Selected " + boxes.size() + " boxes");
             final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
             final StatisticEditController controller = dialog.getController();
 
             controller.setData(boxes);
             dialog.show();
+        } else {
+            LOG.warn("No Buttons selected!");
+            showNoSelectionDialog();
         }
 
     }
@@ -126,25 +136,33 @@ public class StatisticController {
 
     @FXML
     public void onReload(ActionEvent event) {
+        LOG.trace("onReload Event");
+
         loadData();
     }
 
-
+    /**
+     *  Loads the Data into the TableView
+     */
     private void loadData() {
-        if( !Platform.isFxApplicationThread() ) Platform.runLater(dataList::clear);
-        else                                    dataList.clear();
+        LOG.trace("LoadData into View");
 
         boxService.queryAll()
                 .thenAccept(boxes -> {
                     final List<StatisticRow> data = service.query(boxes
-                            , Date.from(this.startDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant())
-                            , Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant()))
-                            .join(); //We want the Data in this Thread, no need to query the Data in another Future
+                            , DateUtil.fromLocalDate(this.startDate.getValue())
+                            , DateUtil.fromLocalDate(this.endDate.getValue())
+                    ).join(); //We want the Data in this Thread, no need to query the Data in another Future
 
-                    Platform.runLater(() -> dataList.addAll(registerDetailEvent(convert(data))));
+                    Platform.runLater(() -> dataList.setAll(registerDetailEvent(convert(data))));
                 }).exceptionally(DialogUtil::onError);
     }
 
+    /**
+     * This function does register an event on each Detail button in the wrapper
+     * @param in the List of StatisticRowWrapper where the Listener should be appended
+     * @return the list which is received as in
+     */
     private static List<StatisticRowWrapper> registerDetailEvent(List<StatisticRowWrapper> in) {
         in.forEach(statisticRowWrapper -> statisticRowWrapper.getDetails().setOnAction(event -> {
             final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
@@ -154,8 +172,23 @@ public class StatisticController {
         return in;
     }
 
+    /**
+     * Converts a List of StatisticRow Objects into a List of StatisticRowWrapper Objects
+     * @param in the list of Object which should be converted
+     * @return the converted List
+     */
     private static List<StatisticRowWrapper> convert(List<StatisticRow> in) {
         return in.stream().map(StatisticRowWrapper::new).collect(Collectors.toList());
     }
 
+    /**
+     * Shows the Dialog with a Warning
+     */
+    private static void showNoSelectionDialog() {
+        final Alert a = new Alert(Alert.AlertType.WARNING);
+        a.setTitle(GlobalSettings.APP_TITLE+": Warnung");
+        a.setHeaderText("Keine Box ausgewählt");
+        a.setContentText("Um den Preis von Boxen ändern zu können müssen Boxen ausgewählt werden!");
+        a.showAndWait();
+    }
 }

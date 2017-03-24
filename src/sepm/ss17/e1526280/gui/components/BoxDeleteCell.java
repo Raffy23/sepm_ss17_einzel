@@ -43,10 +43,10 @@ public class BoxDeleteCell extends TableButtonCell<Box, Void> {
     @Override
     protected void onActiveItemAction(@NotNull Box box) {
         super.tableCellButton.setOnAction(event -> {
-            if (askForDeletion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
+            if (askForDeletion().orElse(ButtonType.NO) == ButtonType.OK) {
                 dataService.remove(box)
-                        .thenRun(() -> boxObservableList.remove(box))
-                        .exceptionally(DialogUtil::onError);
+                           .thenRun(() -> boxObservableList.remove(box))
+                           .exceptionally(DialogUtil::onError);
             }
         });
     }

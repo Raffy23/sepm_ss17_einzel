@@ -19,6 +19,8 @@ public class DialogUtil {
 
     /** Logger for logging ... duh **/
     private static final Logger LOG = LoggerFactory.getLogger(DialogUtil.class);
+
+    /** Simple Lock for shutdown even, can be triggered more than once and let the app crash very hard **/
     private static final AtomicBoolean lock = new AtomicBoolean(true);
 
     /**

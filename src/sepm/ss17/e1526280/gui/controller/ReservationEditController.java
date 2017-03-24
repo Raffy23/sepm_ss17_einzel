@@ -21,6 +21,7 @@ import sepm.ss17.e1526280.gui.controller.wrapper.ReservationWrapper;
 import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.service.exception.DataException;
 import sepm.ss17.e1526280.util.DataServiceManager;
+import sepm.ss17.e1526280.util.DateUtil;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -147,15 +148,15 @@ public class ReservationEditController {
     }
 
     public List<ReservationEntryWrapper> getToUpdate() {
-        return resTable.getItems().stream().collect(Collectors.toList());
+        return new ArrayList<>(resTable.getItems());
     }
 
     public Date getStartDate() {
-        return Date.from(this.startDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return DateUtil.fromLocalDate(this.startDate.getValue());
     }
 
     public Date getEndDate() {
-        return Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+        return DateUtil.fromLocalDate(this.endDate.getValue());
     }
 
     public String getName() {

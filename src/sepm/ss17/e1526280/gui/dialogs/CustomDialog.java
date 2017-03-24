@@ -17,8 +17,13 @@ import java.io.IOException;
  */
 public abstract class CustomDialog<T> {
 
+    /** The stage in which the dialog content is shown **/
     private final Stage dialog = new Stage();
+
+    /** The "Window" of the Dialog **/
     protected Scene scene;
+
+    /** The generic Controller which can control the Dialog (received from FXML)**/
     protected T controller;
 
     /**
@@ -31,9 +36,11 @@ public abstract class CustomDialog<T> {
      * @param fxml the fxml path of the dialog content
      */
     protected CustomDialog(Stage owner, String title, String fxml) {
+        // Load the fxml resource
         final FXMLLoader loader = new FXMLLoader(getClass().getResource(fxml));
 
         try {
+            // Load the stuff and init the dialog
             final Pane root = loader.load();
             scene  = new Scene(root);
 
@@ -43,9 +50,9 @@ public abstract class CustomDialog<T> {
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.setResizable(false);
 
+            // We also want to export the controller to the outside
             controller = loader.getController();
         } catch (IOException e) {
-            e.printStackTrace();
             DialogUtil.onFatal(e);
 
             scene = null;
@@ -66,5 +73,9 @@ public abstract class CustomDialog<T> {
      */
     public T getController() {
         return controller;
+    }
+
+    public void onClose() {
+        dialog.close();
     }
 }

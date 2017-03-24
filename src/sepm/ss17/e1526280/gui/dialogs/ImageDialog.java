@@ -8,8 +8,6 @@ import javafx.stage.Stage;
 import sepm.ss17.e1526280.dto.Box;
 import sepm.ss17.e1526280.service.BoxDataService;
 
-import java.io.File;
-
 /**
  * A Simple Dialog which only displays the Image for a Box
  *
@@ -18,6 +16,12 @@ import java.io.File;
  */
 public class ImageDialog {
 
+    /**
+     * Creates automatically a Image Dialog form the image in the Box, the Image Dialog
+     * is shown after the creating of the necessary system resources
+     * @param box the box which does contain the target image
+     * @param service the service which can resolve the image in the box
+     */
     public ImageDialog(Box box, BoxDataService service) {
         final Stage stage = new Stage();
 
@@ -39,4 +43,5 @@ public class ImageDialog {
         stage.setScene(scene);
         stage.showAndWait();
     }
+
 }

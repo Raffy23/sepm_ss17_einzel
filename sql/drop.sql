@@ -10,11 +10,9 @@
 -- *Warning*: this file does clear the Database!
 
 -- First make sure we don't have any Data left in the Database
-DELETE FROM INVOICE;
 DELETE FROM RESERVATION;
 DELETE FROM BOX;
 
 -- Delete even the Tables so we should have an empty Database
 DROP TABLE BOX;
-DROP TABLE INVOICE;
 DROP TABLE RESERVATION;

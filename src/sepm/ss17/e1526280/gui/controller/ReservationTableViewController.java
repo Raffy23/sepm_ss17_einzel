@@ -36,7 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by
+ * The Controller which is responsible for the main Reservation TableView
  *
  * @author Raphael Ludwig
  * @version 11.03.17
@@ -68,6 +68,8 @@ public class ReservationTableViewController {
      */
     @FXML
     public void initialize() {
+        LOG.debug("initialize");
+
         customerCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         boxCountColl.setCellValueFactory(new PropertyValueFactory<>("count"));
         boxDetailCol.setCellValueFactory(new PropertyValueFactory<>("DUMMY"));
@@ -107,11 +109,15 @@ public class ReservationTableViewController {
 
     @FXML
     public void onNewReservation(ActionEvent event) {
-        final Stage parentStage = (Stage) ((Button)event.getSource()).getScene().getWindow();
-        final String fxml = GlobalSettings.FXML_ROOT+"/"+"reservation_boxchooser.fxml";
+        LOG.trace("onNewReservation Event");
 
-        CustomDialog<ReservationChooserController> dialog = new CustomDialog<ReservationChooserController>(parentStage,GlobalSettings.APP_TITLE + ": Boxen auswählen",fxml) {};
-        ReservationChooserController controller = dialog.getController();
+        final Stage parentStage = (Stage) ((Button)event.getSource()).getScene().getWindow();
+
+        // Dialog Stuff:
+        final String fxml = GlobalSettings.FXML_ROOT+"/"+"reservation_boxchooser.fxml";
+        final String dialogTitle = GlobalSettings.APP_TITLE + ": Boxen auswählen";
+        final CustomDialog<ReservationChooserController> dialog = new CustomDialog<ReservationChooserController>(parentStage,dialogTitle,fxml) {};
+        final ReservationChooserController controller = dialog.getController();
 
         controller.setOkBtnEventHandler(event1 -> {
             if( !controller.validate() ) {
@@ -123,13 +129,16 @@ public class ReservationTableViewController {
                        .thenAccept(this::addData)
                        .exceptionally(DialogUtil::onError);
 
-            ((Stage) ((Button)event1.getSource()).getScene().getWindow()).close();
+            dialog.onClose();
         });
 
 
         dialog.show();
     }
 
+    /**
+     * Loads all the Data from the Service
+     */
     public void loadData() {
         dataList.clear();
 
@@ -148,6 +157,11 @@ public class ReservationTableViewController {
 
     }
 
+    /**
+     * Updates the data in the View in a Thread-Safe way in the UI
+     * @param lists the list of groups reservations which should be displayed in the ui
+     * @return null
+     */
     @Nullable
     private Void asyncUpdate(Collection<List<Reservation>> lists) {
         Platform.runLater(() ->
@@ -159,10 +173,17 @@ public class ReservationTableViewController {
         return null;
     }
 
+    /**
+     * Adds some Data to the Reservation data List
+     * @param rs element which should be displayed in the Table list
+     */
     private void addData(List<Reservation> rs) {
         Platform.runLater(() -> dataList.add(new ReservationWrapper(rs)));
     }
 
+    /**
+     * Shows the Warning Dialog (Validation warning)
+     */
     private static void showOnValidationError() {
         final Alert a = new Alert(Alert.AlertType.WARNING);
         a.setTitle("Warning: " + GlobalSettings.APP_TITLE);

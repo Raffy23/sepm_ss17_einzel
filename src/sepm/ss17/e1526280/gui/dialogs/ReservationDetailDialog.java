@@ -12,6 +12,7 @@ import sepm.ss17.e1526280.util.GlobalSettings;
  */
 public class ReservationDetailDialog extends CustomDialog<ReservationDetailController> {
 
+    /** The path to the fxml file **/
     private static final String fxml = GlobalSettings.FXML_ROOT + "/" + "reservation_detailview.fxml";
 
     /** The Title of the Dialog **/

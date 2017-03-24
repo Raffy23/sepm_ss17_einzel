@@ -26,7 +26,6 @@ import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
  * The Controller of the Box View,
@@ -111,7 +110,8 @@ public class BoxTableViewController {
         final Stage parentStage = (Stage) source.getScene().getWindow();
 
         //Create new Dialog for the Box creation
-        final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, GlobalSettings.APP_TITLE+": Neue Box anlegen");
+        final String boxTitle = GlobalSettings.APP_TITLE+": Neue Box anlegen";
+        final CustomDialog<BoxCreationController> dialog = new BoxDetailDialog(parentStage, boxTitle);
         final BoxCreationController controller = dialog.getController();
 
         //register button handler to dialog
@@ -126,9 +126,7 @@ public class BoxTableViewController {
                     .thenAccept(this::addData)
                     .exceptionally(DialogUtil::onError);
 
-            //close it
-            final Button btn = (Button) event1.getSource();
-            ((Stage)btn.getScene().getWindow()).close();
+            dialog.onClose();
         });
 
         dialog.show();
@@ -163,8 +161,7 @@ public class BoxTableViewController {
                     .thenAccept(this::setData)
                     .exceptionally(DialogUtil::onError);
 
-            final Button btn = (Button) event1.getSource();
-            ((Stage)btn.getScene().getWindow()).close();
+            dialog.onClose();
         });
 
         dialog.show();
@@ -178,7 +175,6 @@ public class BoxTableViewController {
     public void onQueryAll(ActionEvent event) {
         LOG.debug("onQueryAll Event received");
 
-        boxObservableList.clear();
         boxDataService.queryVisible()
                       .thenAccept(this::setData)
                       .exceptionally(DialogUtil::onError);
@@ -190,6 +186,8 @@ public class BoxTableViewController {
      * @param data Box which should be added to the List
      */
     private void addData(Box data) {
+        LOG.trace("Add Box to Datatable " + data);
+
         Platform.runLater(() -> boxObservableList.add(data));
     }
 
@@ -199,13 +197,17 @@ public class BoxTableViewController {
      * @param boxList List of Boxes which should be added to the List
      */
     private void setData(List<Box> boxList) {
-        Platform.runLater(() -> boxObservableList.addAll(boxList));
+        LOG.trace("Setting Table data to: " + boxList);
+
+        Platform.runLater(() -> boxObservableList.setAll(boxList));
     }
 
+    /**
+     * Loads all the data from the Service (All visible boxes are queried)
+     */
     public void loadData() {
-        boxDataService.queryVisible().thenAcceptAsync(boxes -> {
-            LOG.info("Data was loaded successfully");
-            Platform.runLater(() -> boxObservableList.setAll(boxes));
-        }).exceptionally(DialogUtil::onError);
+        boxDataService.queryVisible()
+                      .thenAccept(this::setData)
+                      .exceptionally(DialogUtil::onError);
     }
 }

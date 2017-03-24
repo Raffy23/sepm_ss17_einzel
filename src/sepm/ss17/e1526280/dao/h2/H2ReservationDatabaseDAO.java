@@ -258,7 +258,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
                 //insert.executeUpdate();
             }
 
-            //insert.executeBatch();
+            insert.executeBatch();
             o.forEach(reservation -> reservation.setId(queryID));
         } catch (SQLException e) {
             throw new ObjectDoesAlreadyExistException(e);
@@ -284,6 +284,7 @@ public class H2ReservationDatabaseDAO extends H2DatabaseDAO<Reservation> impleme
             rs.next();
 
             int count = rs.getInt(1);
+            System.out.println(count);
             return count > 0;
         } catch (SQLException e) {
             throw new DatabaseException(e);
