@@ -16,7 +16,7 @@ public class ReservationDetailDialog extends CustomDialog<ReservationDetailContr
     private static final String fxml = GlobalSettings.FXML_ROOT + "/" + "reservation_detailview.fxml";
 
     /** The Title of the Dialog **/
-    private static final String header = "Reservierungsdetails";
+    private static final String header = GlobalSettings.APP_TITLE + ": Details";
 
     /**
      * Creates the Reservation-Detail Dialog

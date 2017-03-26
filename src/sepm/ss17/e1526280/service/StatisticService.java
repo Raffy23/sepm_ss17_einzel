@@ -1,11 +1,13 @@
 package sepm.ss17.e1526280.service;
 
 import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.dto.Range;
 import sepm.ss17.e1526280.dto.Reservation;
 import sepm.ss17.e1526280.dto.StatisticRow;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -48,12 +50,64 @@ public class StatisticService implements StatisticalService {
                     final int[] weekDayData = compileWeekdays(boxOut, start, end);
                     outData.add(new StatisticRow(box, boxOut, weekDayData));
                 }
-
-                //TODO: add also empty stat rows so we have also boxes there which do not have any data
             });
 
             return outData;
         });
+    }
+
+    @Override
+    public CompletableFuture<List<StatisticRow>> query(List<Box> boxes) {
+        return CompletableFuture.supplyAsync(() -> {
+            final List<StatisticRow> outData = new ArrayList<>();
+
+            // Loop though all boxes
+            boxes.forEach(box -> {
+                // Query data
+                final List<Reservation> boxOut = service.queryFor(box).join();
+
+                // If the box has reservations it is added to the Output data
+                if( !boxOut.isEmpty() ) {
+                    final Date start = new Date(boxOut.stream().mapToLong(reservation -> reservation.getStart().getTime()).min().getAsLong());
+                    final Date end = new Date(boxOut.stream().mapToLong(reservation -> reservation.getStart().getTime()).max().getAsLong());
+
+                    final int[] weekDayData = compileWeekdays(boxOut, start, end);
+                    outData.add(new StatisticRow(box, boxOut, weekDayData));
+                }
+            });
+
+            return outData;
+        });
+    }
+
+    /**
+     * Sorts the statistical data with with the given range attribute
+     * @param rows data wich should be sorted
+     * @param range attribute for sort
+     * @return the sorted input rows
+     */
+    private static List<StatisticRow> sortForRange(List<StatisticRow> rows, Range range)  {
+        switch(range) {
+            case Gesamt: rows.sort(Comparator.comparingInt(StatisticRow::getCount)); break;
+            case Montag: rows.sort(Comparator.comparingInt(StatisticRow::getMonday)); break;
+            case Dienstag: rows.sort(Comparator.comparingInt(StatisticRow::getTuesday)); break;
+            case Mittwoch: rows.sort(Comparator.comparingInt(StatisticRow::getWednesday)); break;
+            case Donnerstag: rows.sort(Comparator.comparingInt(StatisticRow::getThursday)); break;
+            case Freitag: rows.sort(Comparator.comparingInt(StatisticRow::getFriday)); break;
+        }
+
+        return rows;
+    }
+
+
+    @Override
+    public Box getWorst(List<StatisticRow> rows, Range range) {
+        return sortForRange(rows,range).get(0).getBox();
+    }
+
+    @Override
+    public Box getBest(List<StatisticRow> rows, Range range) {
+        return sortForRange(rows,range).get(rows.size()-1).getBox();
     }
 
     /**
@@ -120,7 +174,7 @@ public class StatisticService implements StatisticalService {
                 }
 
             } else {
-                // Othweise add the days spend on weekday to every bin
+                // Otherwise add the days spend on weekday to every bin
                 for (int i = 1; i <= DAYS; i++)
                     data[i] += daysSpendOnWeekday;
 

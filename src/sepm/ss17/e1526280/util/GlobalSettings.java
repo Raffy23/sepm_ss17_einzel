@@ -42,8 +42,10 @@ public class GlobalSettings {
         try {
             config.load(new FileReader(new File(targetConfig)));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+
+        LoggerUtil.initalizeLogger();
     }
 
     /**

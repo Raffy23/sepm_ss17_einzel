@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -16,6 +17,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.dto.Range;
 import sepm.ss17.e1526280.dto.StatisticRow;
 import sepm.ss17.e1526280.gui.components.StatChartCell;
 import sepm.ss17.e1526280.gui.controller.wrapper.StatisticRowWrapper;
@@ -59,7 +61,7 @@ public class StatisticController {
     @FXML private TableColumn<StatisticRowWrapper, Integer> daySoCol;
     @FXML private TableColumn<StatisticRowWrapper, Void> graphCol;
     @FXML private TableColumn<StatisticRowWrapper, CheckBox> checkCol;
-    @FXML private TableColumn<StatisticRowWrapper, Button> detailsCol;
+    @FXML private ComboBox<Range> rangeComboBox;
 
     private final StatisticalService service = DataServiceManager.getService().getStatisticalService();
     private final BoxDataService boxService = DataServiceManager.getService().getBoxDataService();
@@ -83,11 +85,13 @@ public class StatisticController {
         daySoCol.setCellValueFactory(    new PropertyValueFactory<>("sunday"));
         graphCol.setCellFactory((TableColumn<StatisticRowWrapper, Void> boxStringTableColumn) -> new StatChartCell());
         checkCol.setCellValueFactory(    new PropertyValueFactory<>("checkBox"));
-        detailsCol.setCellValueFactory(  new PropertyValueFactory<>("details"));
 
         // Set initial data
         startDate.setValue(LocalDate.now());
         endDate.setValue(LocalDate.now());
+
+        rangeComboBox.getItems().setAll(Range.Gesamt,Range.Montag,Range.Mittwoch,Range.Dienstag,Range.Donnerstag,Range.Freitag);
+        rangeComboBox.setValue(Range.Gesamt);
 
         //Validators:
         startDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
@@ -101,7 +105,7 @@ public class StatisticController {
         });
 
         // Load Data
-        loadData();
+        loadData(true);
         tableView.setItems(dataList);
         tableView.getStylesheets().add(GlobalSettings.FXML_ROOT+"/custom_table.css");
     }
@@ -115,7 +119,11 @@ public class StatisticController {
                                         .map(StatisticRow::getBox)
                                         .collect(Collectors.toList());
 
-        if( boxes.size() > 0 ) {
+        showOnPriceChangeDialog(event, boxes);
+    }
+
+    private static void showOnPriceChangeDialog(ActionEvent event, List<Box> boxes) {
+        if(!boxes.isEmpty()) {
             LOG.debug("Selected " + boxes.size() + " boxes");
             final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
             final StatisticEditController controller = dialog.getController();
@@ -126,33 +134,60 @@ public class StatisticController {
             LOG.warn("No Buttons selected!");
             showNoSelectionDialog();
         }
-
     }
 
     @FXML
-    public void onGlobalStat(ActionEvent event) {
-
+    public void onViewAll(ActionEvent event) {
+        LOG.trace("onViewAll");
+        loadData(true);
     }
 
     @FXML
     public void onReload(ActionEvent event) {
         LOG.trace("onReload Event");
+        loadData(false);
+    }
 
-        loadData();
+    @FXML
+    public void onModifyBestBox(ActionEvent event) {
+        LOG.trace("onModifyBestBox Event");
+
+        final List<StatisticRow> rows = new ArrayList<>(dataList);
+        final List<Box> target = new ArrayList<>();
+        target.add(service.getBest(rows,rangeComboBox.getValue()));
+
+        showOnPriceChangeDialog(event, target);
+    }
+
+    @FXML
+    public void onModifyWorstBox(ActionEvent event) {
+        LOG.trace("onModifyBestBox Event");
+
+        final List<StatisticRow> rows = new ArrayList<>(dataList);
+        final List<Box> target = new ArrayList<>();
+        target.add(service.getWorst(rows,rangeComboBox.getValue()));
+
+        showOnPriceChangeDialog(event, target);
     }
 
     /**
      *  Loads the Data into the TableView
      */
-    private void loadData() {
+    private void loadData(boolean full) {
         LOG.trace("LoadData into View");
 
         boxService.queryAll()
                 .thenAccept(boxes -> {
-                    final List<StatisticRow> data = service.query(boxes
-                            , DateUtil.fromLocalDate(this.startDate.getValue())
-                            , DateUtil.fromLocalDate(this.endDate.getValue())
-                    ).join(); //We want the Data in this Thread, no need to query the Data in another Future
+                    final List<StatisticRow> data = new ArrayList<>();
+
+                    if( !full )
+                        data.addAll(service.query(boxes
+                                              , DateUtil.fromLocalDate(this.startDate.getValue())
+                                              , DateUtil.fromLocalDate(this.endDate.getValue())
+                                              ).join() //We want the Data in this Thread, no need to query the Data in another Future
+                                );
+                    else
+                        data.addAll(service.query(boxes).join());
 
                     Platform.runLater(() -> dataList.setAll(registerDetailEvent(convert(data))));
                 }).exceptionally(DialogUtil::onError);
@@ -165,8 +200,8 @@ public class StatisticController {
      */
     private static List<StatisticRowWrapper> registerDetailEvent(List<StatisticRowWrapper> in) {
         in.forEach(statisticRowWrapper -> statisticRowWrapper.getDetails().setOnAction(event -> {
-            final CustomDialog<StatisticEditController> dialog = new StatPriceChangeDialog((Stage) ((Button)event.getSource()).getScene().getWindow());
-            dialog.show();
+            LOG.error("Dialog not implemented!");
+            DialogUtil.onError(new RuntimeException("Dialog not implemented"));
         }));
 
         return in;

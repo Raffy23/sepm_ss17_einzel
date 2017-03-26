@@ -53,7 +53,7 @@ public class ReservationDeleteCell extends TableButtonCell<ReservationWrapper, V
 
         // Register Button Listener
         super.tableCellButton.setOnAction(event -> {
-            if (showQuestionDialog().orElseGet(() -> ButtonType.CANCEL) == ButtonType.OK) {
+            if (showQuestionDialog().orElse(ButtonType.CANCEL) == ButtonType.OK) {
                 dataService.delete(curObj.getBoxes())
                         .thenRun(() -> dataList.remove(curObj))
                         .exceptionally(DialogUtil::onError);

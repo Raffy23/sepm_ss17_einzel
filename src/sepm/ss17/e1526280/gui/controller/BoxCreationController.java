@@ -81,8 +81,6 @@ public class BoxCreationController {
         if( photo != null ) {
             imagePathTextField.setText(photo.getAbsolutePath());
         }
-
-        //validateInput();
     }
 
 
@@ -97,10 +95,17 @@ public class BoxCreationController {
         stage.close();
     }
 
+    /**
+     * This function does Validate a TextField, if validation fails the field is higlighted with the error
+     * css
+     *
+     * @param tf text field which should be validates
+     * @return true if value is parseable false otherwise
+     */
     private boolean validateTextField(TextField tf) {
         LOG.trace("Validate Text input for " + tf);
 
-        if( tf.getText().length() == 0 || !canParseNumber(tf) || parseField(tf) <= 0 ) {
+        if(tf.getText().isEmpty() || !canParseNumber(tf) || parseField(tf) <= 0 ) {
             if( !tf.getStyleClass().contains("error") )
                 tf.getStyleClass().add("error");
 
@@ -112,6 +117,10 @@ public class BoxCreationController {
 
     }
 
+    /**
+     * This function does validate the input from the User
+     * @return true if the input is valid otherwise false
+     */
     public boolean validateInput() {
         boolean success;
 
@@ -132,6 +141,12 @@ public class BoxCreationController {
         return success;
     }
 
+    /**
+     * This function tries to parse the text from a text field into a number,
+     * if it fails false is returned otherwise true
+     * @param textField the field which should be checked
+     * @return true if text is a number otherwise false
+     */
     private boolean canParseNumber(TextField textField) {
         try {
             fmt.parse(textField.getText());
@@ -142,6 +157,11 @@ public class BoxCreationController {
         return true;
     }
 
+    /**
+     * This function does parse the number of a text field
+     * @param textField text field which should be parse
+     * @return the number of the textfield or Double.NaN if the number is not parseable
+     */
     private double parseField(TextField textField) {
         try {
             return fmt.parse(textField.getText()).doubleValue();

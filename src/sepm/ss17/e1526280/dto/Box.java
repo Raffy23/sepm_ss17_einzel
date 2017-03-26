@@ -116,6 +116,7 @@ public class Box implements Serializable {
         this.boxID = boxID;
     }
 
+    @SuppressWarnings("ControlFlowStatementWithoutBraces")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

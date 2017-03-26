@@ -82,7 +82,7 @@ public class ImageDAO {
      * @return the file object of the Image in the Storage
      */
     public File getFilePath(String name) {
-        System.out.println(targetPath+"/"+name);
+        LOG.trace("Get FilePath: " + name);
         return Paths.get(targetPath+"/"+name).toAbsolutePath().toFile();
     }
 

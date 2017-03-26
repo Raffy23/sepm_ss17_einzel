@@ -42,11 +42,6 @@ public class Main extends Application {
         //First load and parse the App config files
         GlobalSettings.initialize();
 
-        //Honor System set config File Path for Logback (useful for debugging)
-        if( System.getProperty("logback.configurationFile") == null )
-            if( GlobalSettings.getConfig().getProperty("logback.config") != null )
-                System.setProperty("logback.configurationFile", GlobalSettings.getConfig().getProperty("logback.config"));
-
         //Start JavaFX and display the GUI
         launch(args);
     }

@@ -140,6 +140,7 @@ public class ReservationTableViewController {
      * Loads all the Data from the Service
      */
     public void loadData() {
+        LOG.trace("loadData");
         dataList.clear();
 
         if( !timeChecker.isSelected() )
@@ -185,6 +186,8 @@ public class ReservationTableViewController {
      * Shows the Warning Dialog (Validation warning)
      */
     private static void showOnValidationError() {
+        LOG.debug("showOnValidationError");
+
         final Alert a = new Alert(Alert.AlertType.WARNING);
         a.setTitle("Warning: " + GlobalSettings.APP_TITLE);
         a.setHeaderText("Es ist ein Fehler bei der Verarbeitung aufgetreten!");
@@ -194,6 +197,7 @@ public class ReservationTableViewController {
 
     @FXML
     public void onRefresh(ActionEvent event) {
+        LOG.trace("onRefresh");
         loadData();
     }
 }

@@ -32,8 +32,7 @@ CREATE TABLE IF NOT EXISTS Box (
 -- Creates the main Table where the Reservations are stored
 CREATE TABLE IF NOT EXISTS Reservation (
 
-  -- Is needed for the INDEX, no data
-  --wtf_fuck_h2_auto_indices INTEGER AUTO_INCREMENT CONSTRAINT h2_wtf PRIMARY KEY ,
+  -- Is needed for the INDEX
   reservationID INTEGER NOT NULL CONSTRAINT valid_reservation CHECK (reservationID>=0),
 
   -- Data of the Reservation:

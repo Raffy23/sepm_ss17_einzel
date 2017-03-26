@@ -1,0 +1,31 @@
+@startuml
+
+skinparam monochrome true
+skinparam backgroundColor transparent
+skinparam classBackgroundColor transparent
+' skinparam style strictuml
+
+skinparam nodesep 30
+skinparam ranksep 15
+
+left to right direction
+
+actor Benutzer as user
+
+rectangle "Wendy's Pferdepension" {
+
+    user --> (Box anlegen)
+    user --> (Box suchen)
+    user --> (Box bearbeiten)
+    user --> (Rechnung legen)
+    user --> (Box reservieren)
+    user --> (Box löschen)
+    user --> (Preis anpassen)
+    user --> (Statistik generieren)
+
+    (Box reservieren) ..> (Box suchen) : includes
+    (Box löschen) ..> (Box suchen) : includes
+    (Preis anpassen) ..> (Statistik generieren) : includes
+}
+
+@enduml

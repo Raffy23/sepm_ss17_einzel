@@ -1,0 +1,21 @@
+@startuml
+
+skinparam monochrome true
+' skinparam backgroundColor transparent
+skinparam classBackgroundColor transparent
+' skinparam style strictuml
+
+skinparam nodesep 80
+skinparam ranksep 90
+
+hide circle
+hide members
+
+Box "*" -- "1" Rechnung
+Box "1 " *-- "1 " Foto
+
+Reservierung "1" -- "*" Kunde
+Reservierung "1" -- "*" Rechnung
+Reservierung "1" -- "*" Pferd
+
+@enduml

@@ -1,5 +1,7 @@
 package sepm.ss17.e1526280.gui.controller;
 
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Tab;
@@ -7,12 +9,14 @@ import javafx.scene.layout.Pane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.gui.dialogs.DialogUtil;
+import sepm.ss17.e1526280.util.DatabaseService;
 import sepm.ss17.e1526280.util.GlobalSettings;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 /**
- * TODO: Comments
+ * This is the main Controlle which does load all the Tab contents in the Window
  *
  * @author Raphael Ludwig
  * @version 09.03.17
@@ -70,4 +74,19 @@ public class MainWindowController {
         statisticTab.setOnSelectionChanged(event -> ((StatisticController)staFragment.getController()).onReload(null));
     }
 
+    @SuppressWarnings("MethodMayBeStatic")
+    @FXML
+    private void onWindowClose(ActionEvent event) {
+        Platform.exit();
+    }
+
+    @SuppressWarnings("MethodMayBeStatic")
+    @FXML
+    private void onInsertSql(ActionEvent event) {
+        try {
+            DatabaseService.getManager().executeSQLFile("./sql/insert_test_data.sql");
+        } catch (IOException | SQLException e) {
+            DialogUtil.onFatal(e);
+        }
+    }
 }

@@ -145,6 +145,14 @@ public class ReservationService extends AbstractService<Reservation> implements 
         return CompletableFuture.supplyAsync(() -> persistenceDAO.queryFor(box,start,end));
     }
 
+    @Override
+    public CompletableFuture<List<Reservation>> queryFor(Box box) {
+        final Map<String,Object> data = new HashMap<>();
+        data.put(ReservationPersistenceDAO.QUERY_PARAM_BOX_ID, box.getBoxID());
+
+        return CompletableFuture.supplyAsync(() -> persistenceDAO.query(data));
+    }
+
     /**
      * {@inheritDoc}
      */

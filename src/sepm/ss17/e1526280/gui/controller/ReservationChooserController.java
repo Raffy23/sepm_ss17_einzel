@@ -14,6 +14,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sepm.ss17.e1526280.dto.Box;
@@ -26,6 +27,7 @@ import sepm.ss17.e1526280.gui.dialogs.SearchDialog;
 import sepm.ss17.e1526280.service.BoxDataService;
 import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.DataServiceManager;
+import sepm.ss17.e1526280.util.DateUtil;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -67,6 +69,8 @@ public class ReservationChooserController {
      */
     @FXML
     public void initialize() {
+        LOG.trace("initialize");
+
         boxPriceCol.setCellValueFactory(new PropertyValueFactory<>("price"));
         boxSizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
         boxLitterCol.setCellValueFactory(new PropertyValueFactory<>("litter"));
@@ -107,24 +111,25 @@ public class ReservationChooserController {
      * @return true if the data is valid otherwise false
      */
     public boolean validate() {
-        if ( customerName.getText().length() <= 0 ) {
-            System.err.println("Customername");
+        LOG.trace("validate form input");
+
+        if ( customerName.getText().length() <= 0 || customerName.getText().length() > 127) {
+            LOG.warn("Name of the Customer is out of Bound!");
             return false;
         }
 
         if( startDate.getValue().isAfter(endDate.getValue()) ) {
-            System.err.println("Start after End");
+            LOG.warn("Start Date if after End Date!");
             return false;
         }
 
         int cnt = 0;
         for(BoxUIWrapper box:boxTable.getItems()) {
-            if(box.checkBox.isSelected()&&box.textField.getText().length() > 0)
+            if(box.checkBox.isSelected()&& !box.textField.getText().isEmpty())
                 cnt++;
         }
 
-        System.err.println("Boxes: " + cnt);
-
+        LOG.trace("There are currently " + cnt + " Boxes checked");
         return cnt != 0;
     }
 
@@ -132,24 +137,38 @@ public class ReservationChooserController {
         continueBtn.setOnAction(okBtnEventHandler);
     }
 
+    /**
+     * @return all reservation objects generated from the dialog
+     */
     public List<Reservation> getReservations() {
+        LOG.trace("getReservations");
         final List<Reservation> reservationList = new ArrayList<>();
 
         boxTable.getItems().forEach(boxUIWrapper -> {
             if( boxUIWrapper.checkBox.isSelected() ) {
-                final Date startDate = Date.from(this.startDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                final Date endDate = Date.from(this.endDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-                reservationList.add(new Reservation(boxUIWrapper,startDate,endDate,customerName.getText(),boxUIWrapper.getHorseName().getText(),boxUIWrapper.getPrice()));
+                reservationList.add(buildReservation(boxUIWrapper));
             }
         });
-
 
         return reservationList;
     }
 
+    /**
+     * Generates a Reservation from a BoxUiWrapper Object
+     * @param boxUIWrapper ui object which should be converted
+     * @return a Reservation from the BoxUIWrapper
+     */
+    @NotNull
+    private Reservation buildReservation(BoxUIWrapper boxUIWrapper) {
+        final Date startDate = DateUtil.fromLocalDate(this.startDate.getValue());
+        final Date endDate = DateUtil.fromLocalDate(this.endDate.getValue());
+
+        return new Reservation(boxUIWrapper,startDate,endDate,customerName.getText(),boxUIWrapper.getHorseName().getText(),boxUIWrapper.getPrice());
+    }
+
     @FXML
     public void onSearchBox(ActionEvent event) {
+        LOG.trace("onSearchBox Event");
         final Button source = (Button) event.getSource();
         final Stage parentStage = (Stage) source.getScene().getWindow();
 
@@ -180,6 +199,7 @@ public class ReservationChooserController {
 
     @FXML
     public void onViewAll(ActionEvent event) {
+        LOG.trace("onViewAll Event");
         boxTable.getItems().clear();
         boxService.queryAll().thenAccept(this::setData).exceptionally(DialogUtil::onFatal);
     }
@@ -187,10 +207,12 @@ public class ReservationChooserController {
     @FXML
     @SuppressWarnings("MethodMayBeStatic") // If static -> FXML can not bind to it
     public void onCancel(ActionEvent event) {
+        LOG.trace("onCancel Event");
         ((Stage) ((Button)event.getSource()).getScene().getWindow()).close();
     }
 
     private void setData(List<Box> boxes) {
+        LOG.trace("setData");
         final List<BoxUIWrapper> dataList = boxes.stream().map(BoxUIWrapper::new).collect(Collectors.toList());
 
         Platform.runLater(() -> {
@@ -214,7 +236,8 @@ public class ReservationChooserController {
     }
 
     private void updateData() {
-        final List<BoxUIWrapper> dataList = boxTable.getItems().stream().collect(Collectors.toList());
+        LOG.trace("updateData");
+        final List<BoxUIWrapper> dataList = new ArrayList<>(boxTable.getItems());
         final List<Box> boxList = new ArrayList<>(dataList);
 
         Platform.runLater(() -> {

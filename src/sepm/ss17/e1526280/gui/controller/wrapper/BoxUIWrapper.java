@@ -18,9 +18,11 @@ public class BoxUIWrapper extends Box {
     public BoxUIWrapper(Box box) {
         super(box);
 
+        /* Init the Fields with some default stuff */
         textField.setDisable(true);
         checkBox.setOnAction(event -> textField.setDisable(!checkBox.isSelected()));
 
+        // Add a value change listener to the text field
         textField.disabledProperty().addListener((observableValue, aBoolean, t1) -> {
             if( t1 ) {
                 textField.setText("");
@@ -30,18 +32,23 @@ public class BoxUIWrapper extends Box {
             }
         });
 
+        // Some custom Css properties
         textField.setOnKeyTyped(keyEvent -> {
             if( textField.getStyleClass().contains("error") )
                 textField.getStyleClass().remove("error");
         });
     }
 
-    //Used by JavaFX Trampoline!
+    /**
+     * @return the Checkbox-JavaFX Element for the Table (Checked if should be used)
+     */
     public CheckBox getCheckedBox() {
         return checkBox;
     }
 
-    //Used by JavaFX Trampoline!
+    /**
+     * @return the TextField-JavaFX Element for the Table (Horsename)
+     */
     public TextField getHorseName() {
         return textField;
     }

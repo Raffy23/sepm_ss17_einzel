@@ -109,6 +109,7 @@ public class Reservation {
         this.price = price;
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

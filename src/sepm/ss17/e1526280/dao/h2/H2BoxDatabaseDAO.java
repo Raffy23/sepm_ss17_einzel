@@ -182,8 +182,6 @@ public class H2BoxDatabaseDAO extends H2DatabaseDAO<Box> implements BoxPersisten
             throw new ObjectDoesAlreadyExistException(e);
         }
 
-
-        System.out.println(this.queryAll());
     }
 
     private static void insertWithStatement(PreparedStatement insert, Box object, int p) throws SQLException {

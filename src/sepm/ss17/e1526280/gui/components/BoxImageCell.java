@@ -40,7 +40,7 @@ public class BoxImageCell extends TableCell<Box, String> {
         } else {
             final Box curObj = getTableView().getItems().get(getIndex());
 
-            if (curObj.getPhoto() != null && curObj.getPhoto().length() > 0) {
+            if (curObj.getPhoto() != null && !curObj.getPhoto().isEmpty()) {
                 viewImage.setOnAction((ActionEvent event) -> new ImageDialog(curObj, dataService));
 
                 setGraphic(viewImage);

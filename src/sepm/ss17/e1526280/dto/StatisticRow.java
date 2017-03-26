@@ -1,5 +1,6 @@
 package sepm.ss17.e1526280.dto;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -74,5 +75,14 @@ public class StatisticRow {
 
     public List<Reservation> getReservationList() {
         return reservationList;
+    }
+
+    @Override
+    public String toString() {
+        return "StatisticRow{" +
+                "box=" + box +
+                ", reservationList=" + reservationList +
+                ", dayCount=" + Arrays.toString(dayCount) +
+                '}';
     }
 }

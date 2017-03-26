@@ -28,6 +28,9 @@ public class ReservationEntryDeleteCell extends TableButtonCell<ReservationEntry
         this.resTable = resTable;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onActiveItemAction(@NotNull ReservationEntryWrapper curObj) {
         super.tableCellButton.setOnAction(event -> {
@@ -39,6 +42,10 @@ public class ReservationEntryDeleteCell extends TableButtonCell<ReservationEntry
         });
     }
 
+    /**
+     * Shows a Yes/No Question Dialog and returns the outcome of it
+     * @return the Button which was pressed by the user
+     */
     private static Optional<ButtonType> showQuestion() {
         final Alert question = new Alert(Alert.AlertType.CONFIRMATION);
         question.setTitle(GlobalSettings.APP_TITLE +": " + "Bestätigung");

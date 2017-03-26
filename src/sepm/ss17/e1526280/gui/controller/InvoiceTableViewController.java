@@ -17,6 +17,8 @@ import sepm.ss17.e1526280.service.ReservationDataService;
 import sepm.ss17.e1526280.util.DataServiceManager;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by
@@ -45,6 +47,8 @@ public class InvoiceTableViewController {
      */
     @FXML
     public void initialize() {
+        LOG.trace("initialize");
+
         customerCol.setCellValueFactory(new PropertyValueFactory<>("name"));
         boxCountCol.setCellValueFactory(new PropertyValueFactory<>("count"));
         detailCol.setCellFactory((TableColumn<ReservationWrapper, Void> boxStringTableColumn) -> new ReservationDetailCell());
@@ -56,16 +60,16 @@ public class InvoiceTableViewController {
         tableView.setItems(dataList);
     }
 
+    /**
+     * Loads all the invoices from the data service
+     */
     public void loadData() {
-        dataList.clear();
+        LOG.trace("loadData");
         dataService.queryGrouped(true)
                 .thenApply(lists -> {
-                    Platform.runLater(() ->
-                            lists.forEach(reservations ->
-                                    dataList.add(new ReservationWrapper(reservations))
-                            )
-                    );
+                    final List<ReservationWrapper> data = lists.stream().map(ReservationWrapper::new).collect(Collectors.toList());
 
+                    Platform.runLater(() -> dataList.setAll(data));
                     return null;
                 })
                 .exceptionally(DialogUtil::onFatal);
@@ -73,6 +77,7 @@ public class InvoiceTableViewController {
 
     @FXML
     public void onRefreshAction(ActionEvent event) {
+        LOG.trace("onRefreshAction");
         this.loadData();
     }
 }

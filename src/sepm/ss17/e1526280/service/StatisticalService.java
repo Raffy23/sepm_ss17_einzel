@@ -1,6 +1,7 @@
 package sepm.ss17.e1526280.service;
 
 import sepm.ss17.e1526280.dto.Box;
+import sepm.ss17.e1526280.dto.Range;
 import sepm.ss17.e1526280.dto.StatisticRow;
 
 import java.util.Date;
@@ -24,4 +25,20 @@ public interface StatisticalService {
      */
     CompletableFuture<List<StatisticRow>> query(List<Box> boxes, Date start, Date end);
 
+    /**
+     * Queries for the list of Boxes for the statistic
+     * @param boxes list of boxes which should be queried
+     * @return a future with the list of the results
+     */
+    CompletableFuture<List<StatisticRow>> query(List<Box> boxes);
+
+    /**
+     * @return Gets the worst row from all the rows
+     */
+    Box getWorst(List<StatisticRow> rows, Range range);
+
+    /**
+     * @return Gets the best row from all the rows
+     */
+    Box getBest(List<StatisticRow> rows, Range range);
 }

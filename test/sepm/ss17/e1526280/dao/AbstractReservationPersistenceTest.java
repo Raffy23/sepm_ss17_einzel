@@ -109,35 +109,8 @@ public abstract class AbstractReservationPersistenceTest {
         dao.remove(data);
     }
 
-    private List<Reservation> generateReservations(int count) throws ObjectDoesNotExistException {
-        final Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-
-
-        final List<Reservation> data = new ArrayList<>();
-        for(int i=0;i <count; i++) {
-            final Date start1 = cal.getTime();
-            cal.add(Calendar.DATE, 1);
-            final Date end1   = cal.getTime();
-            cal.add(Calendar.DATE, 1);
-
-            final Box box = boxPersistenceDAO.query(i+1);
-
-            System.out.println(box);
-            data.add(new Reservation(box, start1, end1, "Customer " + i, "Horse " + i, 250.0f));
-        }
-
-        return data;
-    }
-
     @Test
     public void insertMultiple() throws ObjectDoesNotExistException, ObjectDoesAlreadyExistException {
-        System.out.println(dao.queryAll());
-
         final List<Reservation> data = generateReservations(25);
         dao.persist(data);
     }
@@ -149,7 +122,7 @@ public abstract class AbstractReservationPersistenceTest {
             dao.persist(reservation);
 
         dao.remove(data);
-        Assert.assertTrue(dao.queryAll().size() == 0);
+        Assert.assertTrue(dao.queryAll().isEmpty());
     }
 
     @Test
@@ -197,5 +170,70 @@ public abstract class AbstractReservationPersistenceTest {
 
         Assert.assertFalse(dao.isBoxReserved(dummyBox, start, end));
         Assert.assertFalse(dao.isBoxReserved(boxPersistenceDAO.query(200),start, end));
+    }
+
+    @Test
+    public void testQueryBetween() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+        final List<Reservation> data = generateReservations(1);
+        dao.persist(data);
+
+        final Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        cal.add(Calendar.DATE, -8);
+        final Date start = cal.getTime();
+        cal.add(Calendar.DATE, 16);
+        final Date end = cal.getTime();
+
+        final List<Reservation> reservations = dao.queryBetween(start,end);
+        Assert.assertArrayEquals(data.toArray(), reservations.toArray());
+    }
+
+    @Test
+    public void testQueryBetweenNegative() throws ObjectDoesAlreadyExistException, ObjectDoesNotExistException {
+        final List<Reservation> data = generateReservations(1);
+        dao.persist(data);
+
+        final Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        cal.add(Calendar.DATE, -8);
+        final Date start = cal.getTime();
+        cal.add(Calendar.DATE, 2);
+        final Date end = cal.getTime();
+
+        final List<Reservation> reservations = dao.queryBetween(start,end);
+        Assert.assertTrue(reservations.isEmpty());
+    }
+
+    private List<Reservation> generateReservations(int count) throws ObjectDoesNotExistException {
+        final Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+
+        final List<Reservation> data = new ArrayList<>();
+        for(int i=0;i <count; i++) {
+            final Date start1 = cal.getTime();
+            cal.add(Calendar.DATE, 1);
+            final Date end1   = cal.getTime();
+            cal.add(Calendar.DATE, 1);
+
+            final Box box = boxPersistenceDAO.query(i+1);
+            data.add(new Reservation(box, start1, end1, "Customer " + i, "Horse " + i, 250.0f));
+        }
+
+        return data;
     }
 }

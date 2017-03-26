@@ -11,19 +11,13 @@
         <menus>
           <Menu mnemonicParsing="false" text="Datei">
             <items>
-              <MenuItem mnemonicParsing="false" text="Schließen" />
+              <MenuItem mnemonicParsing="false" onAction="#onWindowClose" text="Schließen" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Datenbank">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Daten löschen" />
-                  <MenuItem mnemonicParsing="false" text="Insert-SQL laden" />
+                  <MenuItem mnemonicParsing="false" onAction="#onInsertSql" text="Insert-SQL laden" />
                </items></Menu>
-          <Menu mnemonicParsing="false" text="Hilfe">
-            <items>
-              <MenuItem mnemonicParsing="false" text="Über" />
-            </items>
-          </Menu>
         </menus>
       </MenuBar>
    </top>
@@ -32,8 +26,8 @@
         <tabs>
             <Tab fx:id="boxesTab" text="Boxen" />
             <Tab fx:id="reservationsTab" text="Reservierungen" />
-            <Tab fx:id="invoiceTab" text="Rechnungen"/>
-            <Tab fx:id="statisticTab" text="Statistik"/>
+            <Tab fx:id="invoiceTab" text="Rechnungen" />
+            <Tab fx:id="statisticTab" text="Statistik" />
         </tabs>
          <BorderPane.margin>
             <Insets />

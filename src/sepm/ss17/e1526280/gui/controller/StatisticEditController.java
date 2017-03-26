@@ -1,7 +1,7 @@
 package sepm.ss17.e1526280.gui.controller;
 
 /**
- * Created by
+ * Controller for the Edit Dialog 
  *
  * @author Raphael Ludwig
  * @version 20.03.17
@@ -145,7 +145,7 @@ public class StatisticEditController {
                     return;
                 }
 
-                data.forEach(box -> box.setPrice(box.getPrice()*price));
+                data.forEach(box -> box.setPrice(box.getPrice()*(price/100)));
             }
 
             // Persist data

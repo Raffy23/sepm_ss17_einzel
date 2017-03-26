@@ -41,7 +41,7 @@ public class ReservationInvoiceCell extends TableButtonCell<ReservationWrapper, 
     @Override
     protected void onActiveItemAction(@NotNull ReservationWrapper wrapper) {
         super.tableCellButton.setOnAction(event -> {
-            if (showQuestion().orElseGet(() -> ButtonType.NO) == ButtonType.OK) {
+            if (showQuestion().orElse(ButtonType.NO) == ButtonType.OK) {
                 dataService.toInvoice(wrapper.getBoxes())
                         .thenRun(() -> Platform.runLater(() -> dataList.remove(wrapper)))
                         .exceptionally(DialogUtil::onError);
